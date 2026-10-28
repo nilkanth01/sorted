@@ -1,0 +1,1243 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F1F3F7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B111E" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Sorted">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+<title>Sorted</title>
+<meta name="description" content="Sorted: a student prototype that turns a fresher's flood of WhatsApp groups, emails and committee forms into one short list of what needs them.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=DM+Mono:wght@400;500&family=Hanken+Grotesk:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: app shell. Left rail on desktop, bottom tabs on phones. One calm column where every item is triaged Must do / Your pick / FYI. */
+:root{
+  --bg:#F1F3F7;
+  --surface:#FFFFFF;
+  --surface-2:#E9EDF4;
+  --ink:#0F1930;
+  --ink-2:#465169;
+  --ink-3:#6E7990;
+  --line:#D8DEE8;
+  --hl:#FFE14A;
+  --hl-swipe:rgba(255,222,64,.8);
+  --must:#C9372B; --must-tint:#FBEAE7;
+  --pick:#2B53DB; --pick-tint:#E7EDFD;
+  --fyi:#5A6780;  --fyi-tint:#ECEFF4;
+  --ok:#14794F;   --ok-tint:#E2F3EA;
+  --warn:#8F5400; --warn-tint:#FFF1D6;
+  --hero-bg:#0F1930; --hero-ink:#F2F4F9; --hero-ink-2:#B3BDD0; --hero-dot:rgba(255,255,255,.13);
+  --hero-must:#FF6A5C; --hero-pick:#86A2FF; --hero-fyi:#FFE14A;
+  --shadow:0 1px 2px rgba(15,25,48,.05),0 12px 30px -14px rgba(15,25,48,.22);
+  --f-display:"Bricolage Grotesque","Hanken Grotesk",system-ui,sans-serif;
+  --f-body:"Hanken Grotesk",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-mono:"DM Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  --r-sm:8px; --r-md:14px; --r-lg:20px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0B111E; --surface:#131B2D; --surface-2:#1A2438; --ink:#E9EDF5; --ink-2:#AAB4C8; --ink-3:#8590A8; --line:#26314A;
+    --hl:#F2D33C; --hl-swipe:rgba(242,211,60,.34);
+    --must:#FF7A6D; --must-tint:rgba(255,122,109,.14); --pick:#8EA8FF; --pick-tint:rgba(142,168,255,.15);
+    --fyi:#9DA9C0; --fyi-tint:rgba(157,169,192,.14); --ok:#55CF95; --ok-tint:rgba(85,207,149,.14);
+    --warn:#F4B95A; --warn-tint:rgba(244,185,90,.14);
+    --hero-bg:#17213A; --hero-ink:#F2F4F9; --hero-ink-2:#B3BDD0; --hero-dot:rgba(255,255,255,.1);
+    --shadow:0 1px 2px rgba(0,0,0,.35),0 12px 30px -14px rgba(0,0,0,.7);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0B111E; --surface:#131B2D; --surface-2:#1A2438; --ink:#E9EDF5; --ink-2:#AAB4C8; --ink-3:#8590A8; --line:#26314A;
+  --hl:#F2D33C; --hl-swipe:rgba(242,211,60,.34);
+  --must:#FF7A6D; --must-tint:rgba(255,122,109,.14); --pick:#8EA8FF; --pick-tint:rgba(142,168,255,.15);
+  --fyi:#9DA9C0; --fyi-tint:rgba(157,169,192,.14); --ok:#55CF95; --ok-tint:rgba(85,207,149,.14);
+  --warn:#F4B95A; --warn-tint:rgba(244,185,90,.14);
+  --hero-bg:#17213A; --hero-ink:#F2F4F9; --hero-ink-2:#B3BDD0; --hero-dot:rgba(255,255,255,.1);
+  --shadow:0 1px 2px rgba(0,0,0,.35),0 12px 30px -14px rgba(0,0,0,.7);
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.5 var(--f-body);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0;padding:0}
+a{color:var(--pick)}
+:focus-visible{outline:2.5px solid var(--pick);outline-offset:2px;border-radius:6px}
+h1,h2,h3{margin:0;text-wrap:balance}
+p{margin:0}
+ul,ol{margin:0;padding:0}
+svg.i{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.vh{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--ink-2)}
+.hl{background:linear-gradient(180deg,transparent 56%,var(--hl-swipe) 56%,var(--hl-swipe) 92%,transparent 92%);padding:0 .1em;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+
+/* ---------- shell ---------- */
+.shell{display:grid;grid-template-columns:minmax(0,1fr);min-height:100%}
+.rail{display:none}
+.main{min-width:0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-bottom:calc(88px + env(safe-area-inset-bottom,0px))}
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:12px;background:var(--bg);border-bottom:1px solid transparent}
+.topbar.scrolled{border-bottom-color:var(--line)}
+.brand{display:flex;align-items:center;gap:9px;font:800 23px/1 var(--f-display);letter-spacing:-.02em;color:var(--ink);text-decoration:none}
+.brand svg{width:26px;height:26px}
+.brand .proto{font:500 10.5px/1 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);border:1px solid var(--line);border-radius:999px;padding:4px 7px;margin-left:2px}
+.me{display:flex;align-items:center;gap:10px;border-radius:999px;padding:3px}
+.avatar{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--hl);color:#0F1930;font:700 14px/1 var(--f-display)}
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:6;display:grid;grid-template-columns:repeat(5,1fr);background:var(--surface);border-top:1px solid var(--line);padding:6px max(16px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.tab{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;border-radius:12px;color:var(--ink-3);font:600 11.5px/1.1 var(--f-body)}
+.tab[aria-current="page"]{color:var(--ink)}
+.tab[aria-current="page"] svg{stroke-width:2.3}
+.tab .badge{position:absolute;top:2px;left:calc(50% + 6px)}
+.badge{min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--must);color:#fff;font:600 11px/18px var(--f-mono);text-align:center}
+@media (min-width:900px){
+  .shell{grid-template-columns:236px minmax(0,1fr)}
+  .rail{display:flex;flex-direction:column;gap:22px;position:sticky;top:0;height:100vh;padding:22px 14px 18px max(14px,env(safe-area-inset-left,0px));background:var(--surface);border-right:1px solid var(--line)}
+  .rail .brand{padding:0 8px}
+  .rail-nav{display:flex;flex-direction:column;gap:2px}
+  .rail-nav button{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;color:var(--ink-2);font-weight:600;text-align:left}
+  .rail-nav button:hover{background:var(--surface-2);color:var(--ink)}
+  .rail-nav button[aria-current="page"]{background:var(--surface-2);color:var(--ink)}
+  .rail-nav .badge{margin-left:auto}
+  .rail-foot{margin-top:auto;display:flex;flex-direction:column;gap:12px}
+  .rail-foot .me{padding:8px;border-radius:12px;text-align:left}
+  .rail-foot .me:hover{background:var(--surface-2)}
+  .rail-foot .me small{display:block;color:var(--ink-3);font-size:12.5px}
+  .rail-foot .note{font-size:12px;color:var(--ink-3);padding:0 8px;line-height:1.45}
+  .topbar,.tabbar{display:none}
+  .main{padding-left:max(36px,env(safe-area-inset-left,0px));padding-right:max(36px,env(safe-area-inset-right,0px));padding-bottom:48px}
+}
+
+/* ---------- views ---------- */
+#view{outline:none}
+.view{max-width:760px;margin:0 auto;padding-block:12px 32px;display:flex;flex-direction:column;gap:22px}
+.view.wide{max-width:1120px}
+@media (min-width:900px){.view{padding-block:34px 40px}}
+.page-head{display:flex;flex-direction:column;gap:6px}
+.eyebrow{font:500 12px/1.2 var(--f-mono);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3)}
+.page-head h1{font:750 32px/1.08 var(--f-display);letter-spacing:-.025em}
+.page-head p{color:var(--ink-2);max-width:60ch}
+.section-title{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.section-title h2{font:700 19px/1.2 var(--f-display);letter-spacing:-.01em}
+.section-title .link{font-size:14px}
+.link{color:var(--pick);font-weight:600}
+.link:hover{text-decoration:underline}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:0 16px;border-radius:10px;background:var(--ink);color:var(--bg);font-weight:600;font-size:14.5px;white-space:nowrap}
+.btn:hover{opacity:.9}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.ghost:hover{background:var(--surface-2);opacity:1}
+.btn.sm{min-height:34px;padding:0 12px;font-size:13.5px;border-radius:9px}
+.btn[aria-pressed="true"]{background:var(--pick);color:#fff}
+.btn.ghost[aria-pressed="true"]{background:var(--pick-tint);color:var(--pick);border-color:transparent}
+.btn svg.i{width:17px;height:17px}
+
+.tag{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 8px;border-radius:6px;font:500 11px/1 var(--f-mono);letter-spacing:.05em;text-transform:uppercase;white-space:nowrap}
+.tag::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.tag.must{background:var(--must-tint);color:var(--must)}
+.tag.pick{background:var(--pick-tint);color:var(--pick)}
+.tag.pick::before{border-radius:2px}
+.tag.fyi{background:var(--fyi-tint);color:var(--fyi)}
+.tag.fyi::before{background:transparent;border:1.5px solid currentColor;width:5px;height:5px}
+.tag.new{background:var(--hl);color:#0F1930}
+.tag.new::before{display:none}
+
+.due{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 9px;border-radius:999px;background:var(--surface-2);color:var(--ink-2);font:500 12.5px/1 var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.due svg.i{width:14px;height:14px}
+.due.hot{background:var(--must-tint);color:var(--must)}
+.due.soon{background:var(--warn-tint);color:var(--warn)}
+.due.over{background:var(--must);color:#fff}
+.due.done{background:var(--ok-tint);color:var(--ok)}
+
+/* hero */
+.hero{display:grid;grid-template-columns:minmax(0,1fr);gap:22px;padding:24px;border-radius:var(--r-lg);background:var(--hero-bg);color:var(--hero-ink);box-shadow:var(--shadow);overflow:hidden}
+.hero .eyebrow{color:var(--hero-ink-2)}
+.hero h1{font:700 26px/1.12 var(--f-display);letter-spacing:-.02em;margin-top:8px}
+.hero .big{display:block;font:800 76px/.9 var(--f-display);letter-spacing:-.04em;color:var(--hero-fyi);margin-bottom:4px}
+.hero .sub{margin-top:12px;color:var(--hero-ink-2);max-width:42ch}
+.hero .sub b{color:var(--hero-ink);font-weight:600}
+.hero .hl{background:linear-gradient(180deg,transparent 58%,rgba(255,225,74,.38) 58%,rgba(255,225,74,.38) 92%,transparent 92%);color:var(--hero-ink)}
+.noise{display:grid;grid-template-columns:repeat(18,minmax(0,1fr));gap:5px;align-content:center}
+.dot{aspect-ratio:1;border-radius:50%;background:var(--hero-dot)}
+.dot.must{background:var(--hero-must)}
+.dot.pick{background:var(--hero-pick);border-radius:3px}
+.dot.fyi{background:transparent;box-shadow:inset 0 0 0 2px var(--hero-fyi)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:12px;font:400 12px/1.3 var(--f-mono);color:var(--hero-ink-2)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:9px;height:9px;border-radius:50%;background:var(--hero-dot);display:inline-block}
+.legend i.must{background:var(--hero-must)}
+.legend i.pick{background:var(--hero-pick);border-radius:2px}
+.legend i.fyi{background:transparent;box-shadow:inset 0 0 0 2px var(--hero-fyi)}
+@media (prefers-reduced-motion:no-preference){
+  .dot.must,.dot.pick,.dot.fyi{animation:pop .9s cubic-bezier(.3,1.6,.5,1) both;animation-delay:var(--d,0ms)}
+  @keyframes pop{0%{transform:scale(1)}45%{transform:scale(1.9)}100%{transform:scale(1)}}
+}
+@media (min-width:700px){
+  .hero{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);align-items:center;padding:30px}
+  .hero h1{font-size:30px}
+  .hero .big{font-size:96px}
+}
+
+.banner{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:var(--surface);border:1px dashed var(--line);font-size:14px;color:var(--ink-2)}
+.banner p{flex:1;min-width:0}
+.banner .x{color:var(--ink-3);padding:6px;border-radius:8px}
+.banner .x:hover{background:var(--surface-2)}
+
+.clash{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-radius:var(--r-md);background:var(--warn-tint);color:var(--ink)}
+.clash > svg.i{color:var(--warn);margin-top:2px}
+.clash .body{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+.clash b{color:var(--warn)}
+.clash .acts{display:flex;flex-wrap:wrap;gap:8px}
+
+.today-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:22px}
+.today-main,.today-side{display:flex;flex-direction:column;gap:22px;min-width:0}
+@media (min-width:1180px){.today-grid{grid-template-columns:minmax(0,1fr) 330px;align-items:start}}
+
+/* week strip */
+.week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.wday{display:flex;flex-direction:column;align-items:center;gap:5px;padding:9px 2px 10px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2)}
+.wday:hover{border-color:var(--ink-3)}
+.wday b{font:700 17px/1 var(--f-display);color:var(--ink)}
+.wday small{font:500 11px/1 var(--f-mono);text-transform:uppercase;letter-spacing:.05em}
+.wday .pips{display:flex;gap:3px;min-height:7px}
+.wday .pips i{width:7px;height:7px;border-radius:50%;background:var(--must)}
+.wday .pips i.pick{background:var(--pick);border-radius:2px}
+.wday.today{border-color:var(--ink)}
+.wday[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.wday[aria-pressed="true"] b{color:var(--bg)}
+
+/* task list */
+.tasks{list-style:none;display:flex;flex-direction:column}
+.dayhead{display:flex;align-items:center;gap:10px;padding:16px 16px 8px;font:500 12px/1 var(--f-mono);text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3)}
+.dayhead::after{content:"";flex:1;height:1px;background:var(--line)}
+.task{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;padding:12px 16px;border-top:1px solid var(--line)}
+.dayhead + .task{border-top:0}
+.chk{position:relative;display:grid;place-items:center;width:26px;height:26px;cursor:pointer}
+.chk input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer}
+.chk span{width:22px;height:22px;border-radius:50%;border:2px solid var(--must);display:grid;place-items:center;transition:background .15s}
+.task.pick .chk span{border-color:var(--pick);border-radius:6px}
+.chk span svg{width:14px;height:14px;stroke:#fff;stroke-width:3;fill:none;opacity:0}
+.chk input:checked + span{background:var(--ok);border-color:var(--ok)}
+.chk input:checked + span svg{opacity:1}
+.chk input:focus-visible + span{outline:2.5px solid var(--pick);outline-offset:2px}
+.task-main{display:flex;flex-direction:column;gap:3px;text-align:left;min-width:0}
+.task-title{font-weight:600;font-size:15.5px;line-height:1.3;color:var(--ink)}
+.task-main:hover .task-title{text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
+.task-meta{font-size:13.5px;color:var(--ink-2);display:flex;flex-wrap:wrap;gap:2px 8px}
+.task-meta .when{font-family:var(--f-mono);font-size:12.5px}
+.task.is-done .task-title{text-decoration:line-through;color:var(--ink-3)}
+.task.is-done .task-meta{color:var(--ink-3)}
+.task-end{display:flex;align-items:center;gap:8px}
+@media (max-width:560px){
+  .task{grid-template-columns:auto minmax(0,1fr);align-items:start;column-gap:12px;row-gap:8px}
+  .task .chk{margin-top:-2px}
+  .task-end{grid-column:2}
+  .task.fyi .task-end{display:none}
+  .task.fyi{align-items:center}
+}
+.list-foot{padding:12px 16px;border-top:1px solid var(--line);font-size:13.5px;color:var(--ink-2);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.empty{padding:28px 16px;text-align:center;color:var(--ink-2)}
+
+/* side cards */
+.mini{display:flex;flex-direction:column;gap:12px;padding:18px}
+.mini h3{font:700 16px/1.25 var(--f-display)}
+.mini .row{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.stat{font:800 34px/1 var(--f-display);letter-spacing:-.03em}
+.stat small{font:500 13px/1 var(--f-body);color:var(--ink-2);letter-spacing:0;margin-left:4px}
+.bar{position:relative;height:8px;border-radius:999px;background:var(--surface-2);overflow:hidden}
+.bar i{position:absolute;inset:0 auto 0 0;border-radius:999px;background:var(--ok)}
+.digest-list{list-style:none;display:flex;flex-direction:column;gap:8px;font-size:14px}
+.digest-list li{display:flex;gap:10px;align-items:baseline}
+.digest-list li .mono{color:var(--ink-3);font-size:12px;min-width:64px}
+
+/* updates */
+.toolbar{display:flex;flex-direction:column;gap:12px}
+.search{position:relative}
+.search svg.i{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--ink-3)}
+.search input{width:100%;height:46px;padding:0 14px 0 42px;border-radius:12px;border:1px solid var(--line);background:var(--surface);font-size:15px}
+.search input::placeholder{color:var(--ink-3)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;height:34px;padding:0 13px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);font-size:13.5px;font-weight:600}
+.chip:hover{color:var(--ink);border-color:var(--ink-3)}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.chip .n{font-family:var(--f-mono);font-weight:500;opacity:.7;margin-left:4px}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:13.5px;color:var(--ink-2)}
+.switch{display:inline-flex;align-items:center;gap:10px;cursor:pointer;color:var(--ink)}
+.switch input{appearance:none;-webkit-appearance:none;width:38px;height:22px;border-radius:999px;background:var(--line);position:relative;margin:0;cursor:pointer;transition:background .15s;flex:none}
+.switch input::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .15s;box-shadow:0 1px 2px rgba(0,0,0,.25)}
+.switch input:checked{background:var(--pick)}
+.switch input:checked::after{transform:translateX(16px)}
+.feed{display:flex;flex-direction:column;gap:12px}
+.upd{display:flex;flex-direction:column;gap:10px;padding:16px 18px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md)}
+.upd.fresh{box-shadow:0 0 0 2px var(--hl)}
+.upd-head{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;font-size:13px;color:var(--ink-2)}
+.upd-head .src{font-weight:600;color:var(--ink)}
+.upd-head .dotsep{color:var(--ink-3)}
+.upd h3{font:650 18px/1.3 var(--f-body);letter-spacing:-.005em}
+.upd .tldr{color:var(--ink-2);max-width:68ch}
+.upd-foot{display:flex;align-items:center;flex-wrap:wrap;gap:8px 10px}
+.upd-foot .spacer{flex:1}
+.raw{display:flex;flex-direction:column;gap:8px;margin-top:2px}
+.bubble{position:relative;align-self:flex-start;max-width:min(520px,100%);padding:10px 12px 22px;border-radius:4px 14px 14px 14px;background:var(--surface-2);font-size:14px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--ink)}
+.bubble .grp{display:block;font-size:12px;font-weight:700;color:var(--pick);margin-bottom:4px;white-space:normal}
+.bubble .fwd{display:block;font-size:12px;font-style:italic;color:var(--ink-3);margin-bottom:2px;white-space:normal}
+.bubble .ts{position:absolute;right:10px;bottom:5px;font:400 11px/1 var(--f-mono);color:var(--ink-3)}
+.raw-note{font:400 12px/1.3 var(--f-mono);color:var(--ink-3)}
+.count-line{font-size:13.5px;color:var(--ink-2)}
+
+/* committees */
+.planner{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;padding:20px}
+.planner h2{font:700 19px/1.2 var(--f-display)}
+.load{display:flex;flex-direction:column;gap:8px}
+.load-track{position:relative;height:30px;border-radius:8px;background:var(--surface-2);overflow:hidden}
+.load-ok{position:absolute;inset:0 auto 0 0;background:var(--ok-tint);border-right:2px dashed var(--ok)}
+.load-range{position:absolute;top:7px;bottom:7px;border-radius:999px;background:var(--pick)}
+.load-range.over{background:var(--must)}
+.load-scale{display:flex;justify-content:space-between;font:400 11.5px/1 var(--f-mono);color:var(--ink-3)}
+.load-text{font-size:14px;color:var(--ink-2)}
+.load-text b{color:var(--ink)}
+.clash-list{list-style:none;display:flex;flex-direction:column;gap:8px}
+@media (min-width:760px){.planner{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);align-items:start}}
+.cgrid{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+@media (min-width:760px){.cgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.ccard{display:flex;flex-direction:column;gap:12px;padding:18px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md)}
+.ccard.on{border-color:var(--pick);box-shadow:inset 0 0 0 1px var(--pick)}
+.ccard h3{font:700 18px/1.2 var(--f-display);letter-spacing:-.01em}
+.ccard p{color:var(--ink-2);font-size:14.5px}
+.ccard .facts{display:flex;flex-wrap:wrap;gap:6px}
+.fact{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 9px;border-radius:7px;background:var(--surface-2);font-size:12.5px;color:var(--ink-2)}
+.fact svg.i{width:14px;height:14px}
+.ccard .next{font-size:13.5px;color:var(--ink-2)}
+.ccard .next b{color:var(--ink);font-weight:600}
+.ccard .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto}
+.rounds{list-style:none;display:flex;flex-direction:column;gap:0;position:relative}
+.rounds li{position:relative;display:grid;grid-template-columns:22px minmax(0,1fr);gap:12px;padding-bottom:16px}
+.rounds li::before{content:"";position:absolute;left:10px;top:20px;bottom:0;width:2px;background:var(--line)}
+.rounds li:last-child::before{display:none}
+.rounds .node{width:22px;height:22px;border-radius:50%;border:2px solid var(--pick);background:var(--surface);display:grid;place-items:center;font:500 11px/1 var(--f-mono);color:var(--pick)}
+.rounds li.past .node{background:var(--ok);border-color:var(--ok);color:#fff}
+.rounds b{display:block}
+.rounds small{display:block;color:var(--ink-2);font-size:13.5px}
+.quote{padding:12px 14px;border-radius:12px;background:var(--surface-2);font-size:14.5px}
+.quote cite{display:block;margin-top:6px;font-style:normal;font-size:12.5px;color:var(--ink-3)}
+
+/* guide */
+.progress{display:flex;flex-direction:column;gap:10px;padding:18px 20px}
+.progress .row{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.gcat{display:flex;flex-direction:column;gap:0}
+.gcat h2{font:500 12px/1 var(--f-mono);text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);padding:0 4px 10px}
+.gitem{border-top:1px solid var(--line)}
+.gitem:first-of-type{border-top:0}
+.gitem summary{list-style:none;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;padding:13px 16px;cursor:pointer}
+.gitem summary::-webkit-details-marker{display:none}
+.gitem summary .t{font-weight:600}
+.gitem summary .chev{color:var(--ink-3);transition:transform .15s}
+.gitem[open] summary .chev{transform:rotate(90deg)}
+.gitem .chk span{border-color:var(--ink-3);border-radius:6px}
+.gitem.is-done summary .t{color:var(--ink-3);text-decoration:line-through}
+.gbody{padding:0 16px 16px 54px;display:flex;flex-direction:column;gap:12px;font-size:14.5px}
+.gbody ol{padding-left:20px;display:flex;flex-direction:column;gap:4px}
+.gbody dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;margin:0}
+.gbody dt{font:500 11.5px/1.6 var(--f-mono);text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3)}
+.gbody dd{margin:0}
+@media (max-width:520px){.gbody{padding-left:16px}}
+
+/* post */
+.post-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:22px}
+@media (min-width:1040px){.post-grid{grid-template-columns:minmax(0,1fr) minmax(0,.95fr);align-items:start}.post-preview{position:sticky;top:24px}}
+.form{display:flex;flex-direction:column;gap:16px;padding:20px}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field label,.field legend{font-weight:600;font-size:14px}
+.field .hint{font-size:12.5px;color:var(--ink-3)}
+.field input[type=text],.field input[type=datetime-local],.field select,.field textarea{width:100%;min-height:44px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);font-size:15px}
+.field textarea{resize:vertical;min-height:84px;line-height:1.45}
+.field input:focus,.field select:focus,.field textarea:focus{outline:2px solid var(--pick);outline-offset:0;border-color:transparent}
+.field .counter{align-self:flex-end;font:400 12px/1 var(--f-mono);color:var(--ink-3)}
+.field .counter.over{color:var(--must)}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+@media (max-width:520px){.two{grid-template-columns:minmax(0,1fr)}}
+fieldset{border:0;margin:0;padding:0;min-width:0}
+.seg{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.seg label{position:relative}
+.seg input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.seg span{display:inline-flex;align-items:center;height:38px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:var(--bg);font-size:14px;font-weight:600;color:var(--ink-2)}
+.seg input:checked + span{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.seg input:focus-visible + span{outline:2.5px solid var(--pick);outline-offset:2px}
+.checks{list-style:none;display:flex;flex-direction:column;gap:8px;font-size:14px}
+.checks li{display:flex;gap:9px;align-items:flex-start}
+.checks li svg.i{width:18px;height:18px;margin-top:1px}
+.checks li.ok svg.i{color:var(--ok)}
+.checks li.no svg.i{color:var(--warn)}
+.wa{white-space:pre-wrap;font:400 13.5px/1.5 var(--f-mono);padding:14px;border-radius:12px;background:var(--surface-2);overflow-wrap:anywhere;color:var(--ink)}
+.preview-stack{display:flex;flex-direction:column;gap:14px}
+.preview-label{font:500 12px/1 var(--f-mono);text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3)}
+.form-acts{display:flex;gap:10px;flex-wrap:wrap}
+.err{font-size:13.5px;color:var(--must)}
+
+/* sheet */
+.backdrop{position:fixed;inset:0;z-index:20;background:rgba(8,12,24,.45);display:flex;align-items:flex-end;justify-content:center}
+.sheet{width:100%;max-width:640px;max-height:min(88vh,100% - env(safe-area-inset-top,0px));overflow:auto;background:var(--surface);color:var(--ink);border-radius:22px 22px 0 0;padding:22px max(20px,env(safe-area-inset-right,0px)) calc(22px + env(safe-area-inset-bottom,0px)) max(20px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:16px;box-shadow:var(--shadow)}
+@media (min-width:700px){.backdrop{align-items:center;padding:24px}.sheet{border-radius:22px;padding:26px 28px}}
+.sheet-head{display:flex;align-items:flex-start;gap:12px}
+.sheet-head > div{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+.sheet h2{font:750 23px/1.15 var(--f-display);letter-spacing:-.02em}
+.sheet .close{padding:8px;border-radius:10px;color:var(--ink-2)}
+.sheet .close:hover{background:var(--surface-2)}
+.kv{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 16px;font-size:14.5px}
+.kv dt{font:500 11.5px/1.7 var(--f-mono);text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3)}
+.kv dd{margin:0}
+.sheet .tldr-big{font-size:16.5px;line-height:1.5}
+.sheet .acts{display:flex;gap:8px;flex-wrap:wrap}
+.sheet textarea.draft{width:100%;min-height:130px;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);font-size:14.5px;line-height:1.5}
+.follow-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px;margin-top:8px}
+.follow-grid label{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:10px;border:1px solid var(--line);font-size:14px;cursor:pointer}
+.follow-grid input{accent-color:var(--pick);width:16px;height:16px}
+
+.toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:30;max-width:calc(100% - 32px);padding:11px 16px;border-radius:12px;background:var(--ink);color:var(--bg);font-weight:600;font-size:14px;box-shadow:var(--shadow)}
+@media (min-width:900px){.toast{bottom:28px}}
+@media (prefers-reduced-motion:no-preference){.toast{animation:rise .2s ease-out}@keyframes rise{from{transform:translate(-50%,8px);opacity:0}}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="rail" aria-label="Main navigation">
+    <a class="brand" href="#today" data-nav="today"><svg viewBox="0 0 28 28" aria-hidden="true"><rect x="2" y="4" width="24" height="5" rx="2.5" fill="var(--must)"/><rect x="2" y="11.5" width="17" height="5" rx="2.5" fill="var(--pick)"/><rect x="2" y="19" width="10" height="5" rx="2.5" fill="var(--fyi)"/></svg>sorted</a>
+    <nav class="rail-nav" id="rail-nav"></nav>
+    <div class="rail-foot">
+      <button class="me" data-act="profile" id="rail-me"></button>
+      <p class="note">Student prototype for a design thinking course. All names, dates and messages are sample data.</p>
+    </div>
+  </aside>
+  <div class="main">
+    <header class="topbar" id="topbar">
+      <a class="brand" href="#today" data-nav="today"><svg viewBox="0 0 28 28" aria-hidden="true"><rect x="2" y="4" width="24" height="5" rx="2.5" fill="var(--must)"/><rect x="2" y="11.5" width="17" height="5" rx="2.5" fill="var(--pick)"/><rect x="2" y="19" width="10" height="5" rx="2.5" fill="var(--fyi)"/></svg>sorted<span class="proto">Prototype</span></a>
+      <button class="me" data-act="profile" id="top-me" aria-label="Your profile and settings"></button>
+    </header>
+    <main id="view" tabindex="-1"></main>
+  </div>
+</div>
+<nav class="tabbar" id="tabbar" aria-label="Main navigation"></nav>
+<div class="backdrop" id="backdrop" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title"></div></div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ================= time helpers ================= */
+const NOW = new Date();
+const HOUR = 36e5, DAY = 864e5;
+const WD = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const WDL = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const MO = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function at(d, hm){ const p = hm.split(':').map(Number); const x = new Date(NOW); x.setDate(x.getDate()+d); x.setHours(p[0],p[1],0,0); return x; }
+function ago(h){ return new Date(NOW.getTime() - h*HOUR); }
+function sod(d){ const x = new Date(d); x.setHours(0,0,0,0); return x; }
+function dayDiff(d){ return Math.round((sod(d) - sod(NOW)) / DAY); }
+function fmtTime(d){ let h = d.getHours(); const m = d.getMinutes(); const ap = h >= 12 ? 'pm' : 'am'; h = h % 12 || 12; return h + ':' + String(m).padStart(2,'0') + ' ' + ap; }
+function fmtDay(d){ const n = dayDiff(d); if(n===0) return 'Today'; if(n===1) return 'Tomorrow'; if(n===-1) return 'Yesterday'; if(n>1 && n<7) return WD[d.getDay()]; return WD[d.getDay()] + ' ' + d.getDate() + ' ' + MO[d.getMonth()]; }
+function fmtWhen(d, end){ return fmtDay(d) + ', ' + fmtTime(d) + (end ? '–' + fmtTime(end) : ''); }
+function dayName(n){ const d = at(n,'12:00'); return n===0 ? 'today' : n===1 ? 'tomorrow' : WDL[d.getDay()]; }
+function dayShort(n){ const d = at(n,'12:00'); return WD[d.getDay()]; }
+function fmtAgo(d){ const h = (Date.now() - d) / HOUR; if(h < 1) return Math.max(1, Math.round(h*60)) + ' min ago'; if(h < 24) return Math.round(h) + 'h ago'; if(h < 48) return 'Yesterday'; return Math.round(h/24) + ' days ago'; }
+function countdown(d){
+  const ms = d - Date.now();
+  if(ms < 0) return {txt:'Overdue', cls:'over'};
+  const mins = Math.floor(ms/6e4);
+  if(mins < 60) return {txt: mins + ' min left', cls:'hot'};
+  const h = Math.floor(mins/60);
+  if(h < 24) return {txt: h + 'h ' + String(mins%60).padStart(2,'0') + 'm left', cls:'hot'};
+  if(h < 72) return {txt: Math.floor(h/24) + 'd ' + (h%24) + 'h left', cls:'soon'};
+  const days = dayDiff(d);
+  return {txt: 'In ' + days + ' days', cls:''};
+}
+function toLocalInput(d){ const p = n => String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes()); }
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function words(s){ return String(s||'').trim().split(/\s+/).filter(Boolean).length; }
+
+/* ================= icons ================= */
+const ICONS = {
+  today:'<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4M9 15l2 2 4-4"/>',
+  inbox:'<path d="M3.5 13.5h4.5l1.8 2.7h4.4l1.8-2.7h4.5"/><path d="M6.2 5.5h11.6l2.7 8v5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2v-5z"/>',
+  users:'<circle cx="9" cy="8.5" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.6 6.5-5.6s5.7 2 6.5 5.6"/><circle cx="17" cy="9.5" r="2.6"/><path d="M16.3 14.6c2.7.2 4.6 2 5.2 4.9"/>',
+  compass:'<circle cx="12" cy="12" r="9"/><path d="M15.6 8.4l-2.1 5.1-5.1 2.1 2.1-5.1z"/>',
+  pen:'<path d="M4 20h4L19.2 8.8a2.3 2.3 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
+  check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  clock:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+  alert:'<path d="M12 3.5l9 16H3z"/><path d="M12 10v4.2M12 17.2v.1"/>',
+  x:'<path d="M6 6l12 12M18 6L6 18"/>',
+  search:'<circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/>',
+  copy:'<rect x="8.5" y="8.5" width="11.5" height="11.5" rx="2"/><path d="M15.5 8.5V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7.5a2 2 0 0 0 2 2h2.5"/>',
+  chev:'<path d="M9.5 6l6 6-6 6"/>',
+  bell:'<path d="M6 16.5V11a6 6 0 1 1 12 0v5.5l1.5 1.8h-15z"/><path d="M10 20.5a2.2 2.2 0 0 0 4 0"/>',
+  arrow:'<path d="M7 17L17 7M9 7h8v8"/>',
+  hours:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12h4"/>',
+  steps:'<path d="M4 7h6M4 12h10M4 17h16"/>',
+  star:'<path d="M12 4l2.4 5 5.4.6-4 3.7 1.1 5.3L12 16l-4.9 2.6 1.1-5.3-4-3.7 5.4-.6z"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>'
+};
+function ico(n, cls){ return '<svg class="i' + (cls ? ' ' + cls : '') + '" viewBox="0 0 24 24" aria-hidden="true">' + ICONS[n] + '</svg>'; }
+
+/* ================= sample data ================= */
+const SRC = {
+  acad:{n:'Academic Office', off:1}, admin:{n:'Admin & Hostel Office', off:1}, it:{n:'IT Helpdesk', off:1},
+  place:{n:'Placement Committee', off:1}, cr:{n:'Your Section CR', off:1},
+  lib:{n:'Library'}, mess:{n:'Mess Committee'},
+  fin:{n:'Finance Club'}, cons:{n:'Consulting Club'}, mkt:{n:'Marketing Club'}, ana:{n:'Analytics Club'},
+  hr:{n:'HR Club'}, ecell:{n:'Entrepreneurship Cell'}, cult:{n:'Cultural Committee'}, sports:{n:'Sports Committee'},
+  media:{n:'Media & PR Cell'}, social:{n:'Social Impact Club'}, quiz:{n:'Quiz Club'}
+};
+const CATS = {academics:'Academics', admin:'Admin', committees:'Clubs & committees', events:'Events', placements:'Placements'};
+
+const UPDATES = [
+  {id:'u1', src:'acad', cat:'academics', pri:'must', aud:'all', posted:ago(26), grp:'BM 26–28 Official 📢',
+   title:'Submit Financial Accounting Assignment 1',
+   tldr:'Individual case write-up, max 1,500 words. Upload as a PDF on the LMS. Late submissions get zero.',
+   action:'Upload on LMS', due:at(0,'23:59'),
+   raw:`*IMPORTANT* 🚨🚨\n\nDear Students,\n\nThis is to inform you that Individual Assignment 1 for the course Financial Accounting (all sections) has to be uploaded on the LMS on or before 11:59 PM ${dayName(0)}. The file must be in PDF format and named RollNo_FA_A1. Word limit is 1,500 words (excluding exhibits). Kindly note that late submissions will NOT be accepted under any circumstances and the plagiarism check will be applied.\n\nPlease ignore if already submitted.\n\nRegards,\nAcademic Office`},
+  {id:'u2', src:'admin', cat:'admin', pri:'must', aud:'all', posted:ago(5), grp:'Admin Updates 26–28',
+   title:'Fill the medical insurance nominee form',
+   tldr:'A 3-minute form. Your group health cover starts only after this. Keep a parent’s date of birth handy.',
+   action:'Fill form · 3 min', due:at(1,'17:00'),
+   raw:`Hi all!! 🙏🙏\nGentle reminder to those who haven't filled the Mediclaim nominee details form yet. PFB the link. Kindly fill it by ${dayName(1)} 5 PM positively as the final list has to be sent to the insurance company.\nPls ignore if done. Also pls fwd in your section groups.\nThanks!! 😊`},
+  {id:'u3', src:'acad', cat:'academics', pri:'must', aud:'all', posted:ago(30), grp:'BM 26–28 Official 📢',
+   title:'Managerial Economics Quiz 1',
+   tldr:'Closed book, Sessions 1–6, 45 minutes in your section classroom. Bring a simple calculator.',
+   action:'Remind me', actionType:'remind', due:at(2,'10:00'), end:at(2,'10:45'),
+   raw:`Dear All,\n\nPlease note that Quiz 1 of Managerial Economics will be conducted on ${WDL[at(2,'12:00').getDay()]} at 10 AM in the respective section classrooms. Duration 45 minutes. The quiz will cover Sessions 1 to 6 (including the readings uploaded on LMS). It will be a closed book quiz. Students are allowed to carry a simple calculator; scientific/programmable calculators and mobile phones are not allowed.\n\nRegards`},
+  {id:'u5', src:'admin', cat:'admin', pri:'must', aud:'all', posted:ago(20), grp:'Admin Updates 26–28',
+   title:'Collect your student ID card',
+   tldr:'Admin Office counter, 2–5 pm. Bring one passport-size photo. You need the card for the library and gate entry.',
+   action:'Remind me', actionType:'remind', due:at(1,'14:00'), end:at(1,'17:00'),
+   raw:`Dear students, ID cards for the 2026–28 batch are ready. Students whose photos were not uploaded during registration must bring 1 passport size photograph. Collection: ${WDL[at(1,'12:00').getDay()]}, 2 PM to 5 PM at the Admin Office counter. Cards will not be handed over to anyone else on your behalf.`},
+  {id:'u4', src:'cr', cat:'academics', pri:'must', aud:'mysec', posted:ago(9), grp:'Sec B 🔥🔥',
+   title:'Add your OB project group to the section sheet',
+   tldr:'Groups of 5, no cross-section groups. Anyone not in a group by the deadline gets placed at random.',
+   action:'Open section sheet', due:at(3,'21:00'),
+   raw:`Guys pls fill your OB groups in the sheet by ${dayName(3)} 9pm!!! Sir said 5 per group strictly, no cross section 🙏 anyone left will be randomly allotted 😅 link is in the group description\nalso those who haven't paid for the section hoodie pls do it asap\nand who took the extension board from CR 3 pls return 😭`},
+  {id:'u6', src:'place', cat:'placements', pri:'must', aud:'all', posted:ago(40), grp:'Placement Updates 26–28',
+   title:'Fill your basic details on the placement portal',
+   tldr:'Name, Class 10/12 and graduation scores, work-ex months. Takes 15 minutes. Needed before the CV workshops start.',
+   action:'Open portal · 15 min', due:at(5,'23:59'),
+   raw:`Dear Batch of 2026–28,\n\nGreetings from the Placement Committee!\n\nAs part of the Summer Internship Process, all students are required to fill in their basic academic and work-ex details on the placement portal by ${WDL[at(5,'12:00').getDay()]}, 11:59 PM. Please note that these details will be verified against your documents and any discrepancy may lead to disqualification. CV workshops will be scheduled only after the portal is filled. Detailed guidelines are attached in the PDF.\n\nWarm regards,\nPlacement Committee`},
+  {id:'c1', src:'cons', cat:'committees', pri:'pick', ref:'cons', aud:'all', posted:ago(3), grp:'ConsultClub Recruitment 26',
+   title:`Consulting Club written test is on ${WDL[at(2,'12:00').getDay()]}, 8 pm`,
+   tldr:'60 minutes: guesstimates and business general knowledge. Room list comes out a day before.',
+   raw:`Hey freshers!! 👋 Hope you're settling in well. The written test for Consulting Club recruitments will be held on ${WDL[at(2,'12:00').getDay()]} 8-9 PM. Venue will be shared a day before. The test will have guesstimates + business GK. All the best!! 💪 Do reach out to any of us for doubts. Also don't forget to fill the form if you haven't, the link is in the description!! 🔗`},
+  {id:'c2', src:'mkt', cat:'committees', pri:'pick', ref:'mkt', aud:'all', posted:ago(7), grp:'MarkClub Aspirants 26–28',
+   title:'Marketing Club GD slots are out',
+   tldr:`Check your slot in the sheet. Most slots are on ${WD[at(2,'12:00').getDay()]} evening. 20-minute GD on brand topics.`,
+   raw:`📣📣 GD SLOTS ARE OUT 📣📣\nPFA the sheet with GD slots for all the applicants. Please check your slot carefully. Slots cannot be changed except in case of clash with academic commitments, for which pls DM any of the coordinators. GDs will be 20 mins. Be on time!!! 🔥`},
+  {id:'c3', src:'fin', cat:'committees', pri:'pick', ref:'fin', aud:'all', posted:ago(11), grp:'FinClub Recruitment 26',
+   title:'Finance Club applications close tomorrow',
+   tldr:'One form plus a 150-word answer on a stock you would pitch. Shortlisted people take a written test later in the week.',
+   raw:`Last call!! ⏰ Finance Club applications close ${dayName(1)} midnight. The form has a short question about a stock you'd pitch (150 words max). No prior finance background needed, we're looking for curiosity!! Shortlisted candidates will have a written test followed by PI. See you there 📈`},
+  {id:'c4', src:'ecell', cat:'committees', pri:'pick', ref:'ecell', aud:'all', posted:ago(14), grp:'E-Cell Recruitment 26',
+   title:'Entrepreneurship Cell applications are open',
+   tldr:'Short form, then a 5-minute pitch round next week. Pitch any idea, it doesn’t need to be a business plan.',
+   raw:`🚀 E-Cell is recruiting! 🚀\nApplications are now open for the batch of 2026–28. The process: 1) Application form 2) Pitch round (5 mins, any idea) 3) Interview. Form closes ${dayName(2)} midnight. Questions? DM us.`},
+  {id:'c5', src:'cult', cat:'events', pri:'fyi', ref:'cult', aud:'all', posted:ago(16), grp:'Cultural Committee 🎭',
+   title:'Freshers’ night auditions: singing, dance, theatre',
+   tldr:`Auditions on ${WD[at(3,'12:00').getDay()]}, 7–9 pm in the auditorium. Come solo or as a group. No sign-up needed.`,
+   raw:`🎤💃🎭 AUDITIONS 🎭💃🎤\nThe stage is set for Freshers' Night!! Auditions for singing, dance, theatre & more on ${WDL[at(3,'12:00').getDay()]} 7 PM onwards at the auditorium. Solo or group, all welcome!! ✨✨ Bring your own track on a pen drive.`},
+  {id:'c6', src:'sports', cat:'events', pri:'fyi', aud:'all', posted:ago(22), grp:'Sports @ Campus',
+   title:'Inter-section cricket: register your team',
+   tldr:'One team of 11 per section, plus 3 substitutes. Your section sports rep registers the team.',
+   raw:`🏏 Inter-section cricket is BACK 🏏\nEach section to send a team of 11 + 3 subs. Section sports reps pls register your teams by ${dayName(4)}. Matches start next week, morning slots 6:30 AM. Fixtures to follow!!`},
+  {id:'e1', src:'lib', cat:'academics', pri:'fyi', aud:'all', posted:ago(18), grp:'Library Notices',
+   title:'Library stays open till 2 am during quiz week',
+   tldr:'Extended hours start tomorrow and run for one week. Carry your ID card to enter after 10 pm.',
+   raw:`Dear Students, In view of the upcoming quizzes, the library reading hall will remain open till 2:00 AM from ${dayName(1)} for one week. Entry after 10 PM only with valid ID card. Kindly maintain silence. — Librarian`},
+  {id:'e2', src:'it', cat:'admin', pri:'fyi', aud:'all', posted:ago(2), grp:'IT Helpdesk',
+   title:'Wi-Fi maintenance tonight, 1–3 am',
+   tldr:'Campus Wi-Fi will drop for about two hours. Download anything you need before 1 am.',
+   raw:`Dear all, please note that there will be a scheduled maintenance activity on the campus network tonight between 1:00 AM and 3:00 AM. Internet services may be intermittently unavailable during this period. Inconvenience is regretted.`},
+  {id:'e3', src:'mess', cat:'admin', pri:'fyi', aud:'all', posted:ago(12), grp:'Mess Committee 🍛',
+   title:'Special dinner on Friday',
+   tldr:'Regional menu on Friday night. Mess timings stay the same.',
+   raw:`Hello everyone!! 😋 This Friday we have a special dinner with a regional menu 🍛🍲 Timings unchanged. Pls give feedback on the form after, it really helps us 🙏`},
+  {id:'e4', src:'admin', cat:'admin', pri:'fyi', aud:'all', posted:ago(33), grp:'Admin Updates 26–28',
+   title:'Laundry pickup moves to Monday and Thursday',
+   tldr:'Drop bags at the hostel ground floor by 9 am on pickup days. Tag every bag with your roll number.',
+   raw:`Notice: With effect from this week, laundry collection will be done on Mondays and Thursdays. Students are requested to keep their laundry bags at the designated area on the ground floor of their hostel before 9:00 AM. Bags without roll number tags will not be accepted.`},
+  {id:'e5', src:'acad', cat:'events', pri:'fyi', aud:'all', posted:ago(28), grp:'BM 26–28 Official 📢',
+   title:'Guest talk: building a career in consulting',
+   tldr:`An alumnus talks about the first five years in consulting. ${WD[at(4,'12:00').getDay()]}, 6 pm, main auditorium. Optional.`,
+   raw:`Dear students, We are pleased to inform you that an alumnus from a leading consulting firm will deliver a guest talk on "Building a career in consulting" on ${WDL[at(4,'12:00').getDay()]} at 6:00 PM in the main auditorium. All students are encouraged to attend.`}
+];
+
+const COMMITTEES = [
+  {id:'cons', name:'Consulting Club', what:'Case prep groups, guesstimate drills and national case competitions.', hrs:[5,7], tags:['Strategy','Cases'],
+   rounds:[{t:'Application form', due:at(-2,'23:59'), note:'Form and a short write-up'},{t:'Written test', due:at(2,'20:00'), end:at(2,'21:00'), note:'Guesstimates and business GK, 60 min'},{t:'Case interview', due:at(5,'19:00'), end:at(5,'21:00'), note:'15-minute slots with seniors'}],
+   tip:'Practise five guesstimates out loud. They care more about how you structure than the final number.'},
+  {id:'mkt', name:'Marketing Club', what:'Brand case competitions, the marketing summit and live projects with companies.', hrs:[4,6], tags:['Brands','Events'],
+   rounds:[{t:'Application form', due:at(-1,'23:59'), note:'Form and a short ad critique'},{t:'Group discussion', due:at(2,'20:30'), end:at(2,'21:30'), note:'20-minute GD on a brand topic'},{t:'Interview', due:at(6,'20:00'), end:at(6,'22:00'), note:'Personal interview'}],
+   tip:'Pick two brands you love and two you think are struggling. Know why.'},
+  {id:'fin', name:'Finance Club', what:'Markets, valuation and finance case competitions. Runs the weekly market wrap and a trading game.', hrs:[4,6], tags:['Markets','Valuation'],
+   rounds:[{t:'Application form', due:at(1,'23:59'), note:'Form and 150 words on a stock you would pitch'},{t:'Written test', due:at(4,'18:00'), end:at(4,'19:00'), note:'Accounting basics and market news'},{t:'Interview', due:at(6,'19:30'), end:at(6,'21:30'), note:'15-minute slots'}],
+   tip:'Read the business papers daily for a week before the test. They ask about recent deals.'},
+  {id:'ana', name:'Analytics Club', what:'Excel, SQL and Python workshops for the batch, plus analytics competitions.', hrs:[3,5], tags:['Data','Workshops'],
+   rounds:[{t:'Application form', due:at(-3,'23:59'), note:'Short form'},{t:'Case task', due:at(4,'23:59'), note:'Analyse a small dataset and send 3 slides'},{t:'Interview', due:at(7,'18:00'), end:at(7,'19:00'), note:'Walk through your case task'}],
+   tip:'A clean chart with one clear message beats ten tabs of analysis.'},
+  {id:'ecell', name:'Entrepreneurship Cell', what:'Startup speaker sessions, pitch nights and the campus startup fair.', hrs:[4,6], tags:['Startups','Pitching'],
+   rounds:[{t:'Application form', due:at(2,'23:59'), note:'Short form'},{t:'Pitch round', due:at(5,'19:30'), end:at(5,'21:00'), note:'5-minute pitch, any idea'},{t:'Interview', due:at(7,'20:00'), end:at(7,'21:00'), note:'Personal interview'}],
+   tip:'Pitch a problem you have faced yourself. It shows.'},
+  {id:'cult', name:'Cultural Committee', what:'Freshers’ night, the cultural fest and festival celebrations on campus.', hrs:[6,10], tags:['Fests','Performing'],
+   rounds:[{t:'Auditions and task', due:at(3,'19:00'), end:at(3,'21:00'), note:'Show any talent, or an event idea'},{t:'Interview', due:at(6,'17:00'), end:at(6,'18:00'), note:'Personal interview'}],
+   tip:'Fest month is intense. Plan your quizzes around it.'},
+  {id:'sports', name:'Sports Committee', what:'Inter-section leagues, inter-college meets and the campus sports fest.', hrs:[4,8], tags:['Sports','Events'],
+   rounds:[{t:'Application form', due:at(2,'23:59'), note:'Short form'},{t:'Trials and interview', due:at(4,'06:30'), end:at(4,'08:00'), note:'Morning trials on the ground'}],
+   tip:'Early mornings are the norm. Be honest about whether that works for you.'},
+  {id:'media', name:'Media & PR Cell', what:'The campus newsletter, social media pages and event coverage.', hrs:[3,5], tags:['Writing','Design'],
+   rounds:[{t:'Portfolio task', due:at(3,'23:59'), note:'One short article or 3 social posts'},{t:'Interview', due:at(5,'21:00'), end:at(5,'22:00'), note:'Talk through your task'}],
+   tip:'Show your own voice. Polish matters less.'},
+  {id:'hr', name:'HR Club', what:'People-analytics workshops, HR case competitions and the HR conclave. Mostly HRM, BM welcome.', hrs:[3,5], tags:['People','Cases'],
+   rounds:[{t:'Application form', due:at(2,'23:59'), note:'Short form'},{t:'Case GD', due:at(6,'18:00'), end:at(6,'19:00'), note:'GD on an HR case'}],
+   tip:'Read one HR news story a day this week.'},
+  {id:'social', name:'Social Impact Club', what:'Projects with local NGOs, donation drives and a rural immersion trip.', hrs:[2,4], tags:['NGOs','Projects'],
+   rounds:[{t:'Application form', due:at(4,'23:59'), note:'Short form'},{t:'Group discussion', due:at(7,'18:30'), end:at(7,'19:30'), note:'GD on a social issue'}],
+   tip:'They look for people who will show up on weekends.'},
+  {id:'quiz', name:'Quiz Club', what:'Weekly open quizzes and the inter-college quiz fest.', hrs:[2,3], tags:['Quizzing'],
+   rounds:[{t:'Prelims quiz', due:at(3,'21:30'), end:at(3,'22:30'), note:'Written prelims, teams of 2'}],
+   tip:'Just come for the prelims. It is fun even if you don’t get in.'}
+];
+
+const GUIDE = [
+  {id:'g1', cat:'Settle in', title:'Collect your student ID card', link:'u5', why:'You need it for the library, gate entry after 10 pm and exams.',
+   steps:['Go to the Admin Office counter during collection hours','Bring one passport-size photo if yours was not uploaded at registration','Check your name and roll number before you sign'], where:'Admin Office counter', when:'Weekdays, 2–5 pm', bring:'1 passport-size photo'},
+  {id:'g2', cat:'Settle in', title:'Get on campus Wi-Fi', why:'Most course material, quizzes and forms are online.',
+   steps:['Log in to the IT portal with your roll number','Register your laptop and phone (two devices)','Use the same login on the campus network'], where:'IT Helpdesk, for any trouble', when:'Weekdays, 9 am–6 pm', bring:'Your laptop, if it will not connect'},
+  {id:'g3', cat:'Settle in', title:'Log in to the LMS and your institute email', why:'Assignments, readings and official notices come here first.',
+   steps:['Use the login sent to your personal email at admission','Change your password on first login','Add the institute email to your phone so you do not miss notices'], where:'Online', when:'Any time', bring:'—'},
+  {id:'g4', cat:'Settle in', title:'Know your mess and night canteen timings', why:'Classes run late in the first weeks. Missing dinner is easy.',
+   steps:['Check the weekly menu on the mess notice board','Note the night canteen hours for late study nights','Give feedback on the mess form. It is read.'], where:'Mess and night canteen', when:'Breakfast 7:30–9:30 · Lunch 12:30–2:30 · Dinner 7:45–10', bring:'—'},
+  {id:'g5', cat:'Settle in', title:'Set up your laundry', why:'Bags without a roll number tag are not accepted.',
+   steps:['Buy a laundry bag and write your roll number on a tag','Drop the bag on pickup days before 9 am','Collect from the same place two days later'], where:'Hostel ground floor', when:'Pickup Monday and Thursday', bring:'Tagged laundry bag', link:'e4'},
+  {id:'g6', cat:'Academics', title:'Find course outlines and session plans', why:'The outline tells you quiz weights, readings and deadlines for the whole term.',
+   steps:['Open each course on the LMS','Download the course outline','Put every quiz and submission date in your calendar, or let Sorted do it'], where:'LMS', when:'Week 1', bring:'—'},
+  {id:'g7', cat:'Academics', title:'Activate your library account', why:'You get access to journals, case libraries and business databases.',
+   steps:['Visit the library help desk with your ID card','Ask for remote access to the online databases','Learn the issue and return rules'], where:'Library help desk', when:'9 am–8 pm (till 2 am in quiz week)', bring:'ID card', link:'e1'},
+  {id:'g8', cat:'Academics', title:'Sort out printing and stationery', why:'Some submissions and case packs are on paper.',
+   steps:['Find the print and photocopy shop on campus','Top up your print balance if needed','Keep a stapler and a simple calculator for quizzes'], where:'Campus print shop', when:'Weekdays', bring:'Files on a pen drive'},
+  {id:'g9', cat:'Money & health', title:'Fill the insurance nominee form', link:'u2', why:'Your group health cover starts only after this.',
+   steps:['Open the form from the Admin update','Enter your nominee’s name, relation and date of birth','Submit and save the confirmation email'], where:'Online form', when:'By the deadline', bring:'Nominee’s date of birth'},
+  {id:'g10', cat:'Money & health', title:'Find the medical room and doctor hours', why:'Know this before you need it.',
+   steps:['Locate the campus medical room','Save the doctor’s hours and the emergency number','Ask how insurance cashless claims work at the tie-up hospital'], where:'Campus medical room', when:'Doctor: mornings and evenings', bring:'ID card'},
+  {id:'g11', cat:'Getting around', title:'Get to Bistupur for shopping and food', why:'Most things you forgot to pack are a short auto ride away.',
+   steps:['Take an auto from the main gate','Agree on the fare before you sit','Go in a group in the evening and share the fare'], where:'Main gate auto stand', when:'Any time', bring:'Cash or UPI'},
+  {id:'g12', cat:'Getting around', title:'Plan your trip home', why:'Term breaks fill every cab and train at once.',
+   steps:['Tatanagar Junction is the main railway station','Ranchi airport is about 3 hours by road. Book a shared cab early','Post your travel date in Sorted to find people on the same route'], where:'Tatanagar Junction · Ranchi airport', when:'Book 2–3 weeks before breaks', bring:'—'}
+];
+const GUIDE_CATS = ['Settle in','Academics','Money & health','Getting around'];
+
+const NOISE = {msgs:284, groups:37, emails:9};
+const ARRIVAL_DAY = 12;
+
+/* ================= state ================= */
+const KEY = 'sorted.v1';
+const DEFAULT_STATE = {
+  profile:{name:'Riya', prog:'BM', sec:'B', digest:'20:00', mustOnly:true},
+  following:['fin','cons','mkt','ana','cult','sports','mess','lib','quiz'],
+  shortlisted:['cons','mkt','ana'],
+  done:[], guideDone:['g2','g3','g4'], reminders:[], posts:[], banner:true
+};
+function clone(o){ return JSON.parse(JSON.stringify(o)); }
+function load(){
+  try{ const raw = localStorage.getItem(KEY); if(raw){ const s = JSON.parse(raw); return Object.assign(clone(DEFAULT_STATE), s, {profile:Object.assign({}, DEFAULT_STATE.profile, s.profile||{})}); } }catch(e){}
+  return clone(DEFAULT_STATE);
+}
+let state = load();
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+const has = (arr, v) => arr.indexOf(v) !== -1;
+function toggleIn(arr, v){ const i = arr.indexOf(v); if(i === -1) arr.push(v); else arr.splice(i,1); return i === -1; }
+
+/* ui-only state */
+const ui = {route:'today', day:null, q:'', cat:'all', followOnly:true, cfilter:'all', gq:'', fresh:null, resetArmed:false};
+
+/* ================= derived data ================= */
+function postToItem(p){ return Object.assign({}, p, {posted:new Date(p.posted), due:p.due ? new Date(p.due) : null, end:null, mine:true}); }
+function allUpdates(){ return state.posts.map(postToItem).concat(UPDATES); }
+function audOk(u){ if(!u.aud || u.aud === 'all' || u.aud === 'mysec') return true; if(u.aud === 'BM' || u.aud === 'HRM') return u.aud === state.profile.prog; if(u.aud.indexOf('sec:') === 0) return u.aud.slice(4) === state.profile.sec; return true; }
+function audLabel(a){ if(!a || a === 'all') return 'All first-years'; if(a === 'mysec') return 'Section ' + state.profile.sec; if(a === 'BM' || a === 'HRM') return a + ' 2026–28'; if(a.indexOf('sec:') === 0) return 'Section ' + a.slice(4); return a; }
+function srcVisible(u){ return u.mine || SRC[u.src].off || has(state.following, u.src); }
+function findUpdate(id){ return allUpdates().find(u => u.id === id); }
+function findCommittee(id){ return COMMITTEES.find(c => c.id === id); }
+
+function needItems(){
+  const out = [];
+  allUpdates().forEach(u => {
+    if(u.pri === 'must' && u.action && u.due && audOk(u)) out.push({kind:'u', id:u.id, title:u.title, src:SRC[u.src].n, action:u.action, due:u.due, end:u.end, pri:'must'});
+  });
+  COMMITTEES.forEach(c => {
+    if(!has(state.shortlisted, c.id)) return;
+    c.rounds.forEach((r,i) => { if(r.due >= NOW) out.push({kind:'r', id:'r:'+c.id+':'+i, cid:c.id, title:c.name + ': ' + r.t, src:c.name, action:r.note, due:r.due, end:r.end, pri:'pick'}); });
+  });
+  return out.sort((a,b) => a.due - b.due);
+}
+function clashes(items){
+  const timed = items.filter(x => x.end);
+  const res = [];
+  for(let i=0;i<timed.length;i++) for(let j=i+1;j<timed.length;j++){
+    const a = timed[i], b = timed[j];
+    if(a.due < b.end && b.due < a.end) res.push([a,b]);
+  }
+  return res;
+}
+function loadRange(){ let lo = 0, hi = 0; state.shortlisted.forEach(id => { const c = findCommittee(id); if(c){ lo += c.hrs[0]; hi += c.hrs[1]; } }); return [lo,hi]; }
+
+/* ================= shell ================= */
+const NAV = [
+  {id:'today', label:'Today', icon:'today'},
+  {id:'updates', label:'Updates', icon:'inbox'},
+  {id:'committees', label:'Committees', icon:'users'},
+  {id:'guide', label:'Guide', icon:'compass'},
+  {id:'post', label:'Post', icon:'pen'}
+];
+function renderShell(){
+  const hot = needItems().filter(x => !has(state.done, x.id) && x.due - Date.now() < DAY).length;
+  const badge = id => id === 'today' && hot ? '<span class="badge" aria-label="' + hot + ' due within 24 hours">' + hot + '</span>' : '';
+  document.getElementById('rail-nav').innerHTML = NAV.map(n => '<button data-nav="' + n.id + '"' + (ui.route === n.id ? ' aria-current="page"' : '') + '>' + ico(n.icon) + n.label + badge(n.id) + '</button>').join('');
+  document.getElementById('tabbar').innerHTML = NAV.map(n => '<button class="tab" data-nav="' + n.id + '"' + (ui.route === n.id ? ' aria-current="page"' : '') + '>' + ico(n.icon) + n.label + badge(n.id) + '</button>').join('');
+  const p = state.profile, ini = esc((p.name || '?').trim().charAt(0).toUpperCase() || '?');
+  document.getElementById('top-me').innerHTML = '<span class="avatar">' + ini + '</span>';
+  document.getElementById('rail-me').innerHTML = '<span class="avatar">' + ini + '</span><span><b>' + esc(p.name) + '</b><small>' + esc(p.prog) + ' 2026–28 · Section ' + esc(p.sec) + '</small></span>';
+}
+
+/* ================= TODAY ================= */
+function greet(){ const h = NOW.getHours(); return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'; }
+function noiseField(sig){
+  const N = 126, map = {};
+  let seed = 11; const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+  sig.forEach(k => { let p, guard = 0; do{ p = Math.floor(rnd()*N); guard++; } while(map[p] && guard < 500); map[p] = k; });
+  let s = '';
+  for(let i=0;i<N;i++) s += map[i] ? '<i class="dot ' + map[i] + '" style="--d:' + (300 + (i%18)*35) + 'ms"></i>' : '<i class="dot"></i>';
+  return s;
+}
+function taskRow(x){
+  const done = has(state.done, x.id);
+  const cd = done ? {txt:'Done', cls:'done'} : countdown(x.due);
+  return '<li class="task ' + x.pri + (done ? ' is-done' : '') + '">' +
+    '<label class="chk"><input type="checkbox" id="done-' + esc(x.id) + '" data-act="done" data-id="' + esc(x.id) + '"' + (done ? ' checked' : '') + '><span>' + ico('check') + '</span><span class="vh">Mark “' + esc(x.title) + '” as done</span></label>' +
+    '<button class="task-main" data-act="open" data-kind="' + x.kind + '" data-id="' + esc(x.kind === 'r' ? x.cid : x.id) + '">' +
+      '<span class="task-title">' + esc(x.title) + '</span>' +
+      '<span class="task-meta"><span class="when">' + esc(fmtWhen(x.due, x.end)) + '</span><span>' + esc(x.action) + '</span></span>' +
+    '</button>' +
+    '<span class="task-end"><span class="due ' + cd.cls + '"' + (done ? '' : ' data-due="' + x.due.getTime() + '"') + '>' + ico('clock') + '<span>' + esc(cd.txt) + '</span></span></span>' +
+  '</li>';
+}
+function viewToday(){
+  const items = needItems();
+  const weekEnd = sod(NOW).getTime() + 7*DAY;
+  const open = items.filter(x => !has(state.done, x.id));
+  const thisWeek = open.filter(x => x.due.getTime() < weekEnd);
+  const in24 = open.filter(x => x.due - Date.now() < DAY).length;
+  const fyiAll = allUpdates().filter(u => u.pri !== 'must' && srcVisible(u) && audOk(u));
+  const sig = thisWeek.map(x => x.pri).concat(fyiAll.slice(0,6).map(() => 'fyi'));
+  const cl = clashes(open);
+
+  // week strip
+  let week = '';
+  for(let d=0; d<7; d++){
+    const day = at(d,'12:00');
+    const its = items.filter(x => dayDiff(x.due) === d);
+    week += '<button class="wday' + (d===0 ? ' today' : '') + '" data-act="day" data-day="' + d + '" aria-pressed="' + (ui.day === d) + '" aria-label="' + WDL[day.getDay()] + ', ' + its.length + ' items">' +
+      '<small>' + (d===0 ? 'Today' : WD[day.getDay()]) + '</small><b>' + day.getDate() + '</b>' +
+      '<span class="pips">' + its.slice(0,4).map(x => '<i class="' + x.pri + '"></i>').join('') + '</span></button>';
+  }
+
+  // grouped task list
+  const shown = items.filter(x => (ui.day === null ? x.due.getTime() < weekEnd : dayDiff(x.due) === ui.day));
+  const later = ui.day === null ? items.filter(x => x.due.getTime() >= weekEnd).length : 0;
+  let list = '', lastDay = null;
+  shown.forEach(x => {
+    const dd = dayDiff(x.due);
+    if(dd !== lastDay){ lastDay = dd; list += '<li class="dayhead" role="presentation">' + esc(dd === 0 ? 'Today' : dd === 1 ? 'Tomorrow' : WDL[x.due.getDay()] + ' ' + x.due.getDate() + ' ' + MO[x.due.getMonth()]) + '</li>'; }
+    list += taskRow(x);
+  });
+  if(!shown.length) list = '<li class="empty">Nothing due ' + (ui.day === null ? 'this week' : 'on this day') + '. Enjoy it.</li>';
+
+  // clash banner
+  let clashHtml = '';
+  if(cl.length){
+    const [a,b] = cl[0];
+    clashHtml = '<div class="clash" role="note">' + ico('alert') + '<div class="body"><p><b>Clash on ' + esc(fmtDay(a.due)) + ':</b> ' + esc(a.title) + ' (' + esc(fmtTime(a.due)) + '–' + esc(fmtTime(a.end)) + ') overlaps ' + esc(b.title) + ' (' + esc(fmtTime(b.due)) + '–' + esc(fmtTime(b.end)) + ').' + (cl.length > 1 ? ' <span class="muted">+' + (cl.length-1) + ' more clash' + (cl.length > 2 ? 'es' : '') + '.</span>' : '') + '</p>' +
+      '<div class="acts"><button class="btn sm" data-act="draft-clash" data-a="' + esc(a.id) + '" data-b="' + esc(b.id) + '">' + ico('pen') + 'Draft a slot-change request</button>' + (cl.length > 1 ? '<button class="btn sm ghost" data-nav="committees">See all clashes</button>' : '') + '</div></div></div>';
+  }
+
+  // FYI
+  const fyi = fyiAll.sort((a,b) => b.posted - a.posted).slice(0,4);
+  const fyiHtml = fyi.map(u => '<li class="task fyi"><span class="tag ' + u.pri + '" aria-hidden="true" style="padding:0 6px">' + (u.pri === 'pick' ? 'Club' : 'FYI') + '</span><button class="task-main" data-act="open" data-kind="u" data-id="' + esc(u.id) + '"><span class="task-title">' + esc(u.title) + '</span><span class="task-meta"><span>' + esc(SRC[u.src].n) + '</span><span class="when">' + esc(fmtAgo(u.posted)) + '</span></span></button><span class="task-end">' + ico('chev') + '</span></li>').join('');
+
+  // side
+  const [lo,hi] = loadRange();
+  const gd = state.guideDone.length;
+  const digestItems = open.filter(x => dayDiff(x.due) === 1 || has(state.reminders, x.id));
+  const digestTime = state.profile.digest === 'off' ? null : fmtTime(at(0, state.profile.digest));
+
+  const p = state.profile;
+  return '<div class="view wide">' +
+    (state.banner ? '<div class="banner">' + ico('star') + '<p>You are seeing a sample profile: ' + esc(p.name) + ', ' + esc(p.prog) + ' · Section ' + esc(p.sec) + '. <button class="link" data-act="profile">Make it yours</button></p><button class="x" data-act="hide-banner" aria-label="Dismiss">' + ico('x') + '</button></div>' : '') +
+    '<div class="page-head"><p class="eyebrow">Day ' + ARRIVAL_DAY + ' on campus · ' + esc(WDL[NOW.getDay()]) + ' ' + NOW.getDate() + ' ' + MO[NOW.getMonth()] + '</p></div>' +
+    '<section class="hero" aria-label="Summary">' +
+      '<div><p class="eyebrow">' + esc(greet()) + ', ' + esc(p.name) + '</p>' +
+        '<h1><span class="big mono-num">' + thisWeek.length + '</span>' + (thisWeek.length === 1 ? 'thing needs' : 'things need') + ' you this week</h1>' +
+        '<p class="sub">Sorted from <b>' + NOISE.msgs + ' messages</b> in <b>' + NOISE.groups + ' groups</b> and ' + NOISE.emails + ' emails since yesterday. ' + (in24 ? '<span class="hl">' + in24 + ' ' + (in24 === 1 ? 'is' : 'are') + ' due in the next 24 hours.</span>' : 'Nothing is due in the next 24 hours.') + '</p></div>' +
+      '<div><div class="noise" aria-hidden="true">' + noiseField(sig) + '</div>' +
+        '<div class="legend"><span><i></i>2 messages</span><span><i class="must"></i>Must do</span><span><i class="pick"></i>Your committees</span><span><i class="fyi"></i>Good to know</span></div></div>' +
+    '</section>' +
+    clashHtml +
+    '<div class="today-grid"><div class="today-main">' +
+      '<section aria-labelledby="h-week"><div class="section-title" style="margin-bottom:12px"><h2 id="h-week">This week</h2>' + (ui.day !== null ? '<button class="link" data-act="day" data-day="' + ui.day + '">Show the whole week</button>' : '') + '</div><div class="week">' + week + '</div></section>' +
+      '<section class="panel" aria-labelledby="h-due"><div class="section-title" style="padding:16px 16px 0"><h2 id="h-due">Due next</h2><span class="muted" style="font-size:13.5px">' + open.length + ' open · ' + (items.length - open.length) + ' done</span></div>' +
+        '<ul class="tasks">' + list + '</ul>' +
+        '<div class="list-foot"><span>' + (later ? later + ' more after this week' : 'That is everything for the week.') + '</span><span>Tick things off as you go.</span></div></section>' +
+      '<section class="panel" aria-labelledby="h-fyi"><div class="section-title" style="padding:16px 16px 4px"><h2 id="h-fyi">Good to know</h2><button class="link" data-nav="updates">All updates</button></div><ul class="tasks">' + fyiHtml + '</ul></section>' +
+    '</div><aside class="today-side" aria-label="Shortcuts">' +
+      '<section class="panel mini"><div class="row"><h3>Tonight’s digest</h3><span class="mono muted" style="font-size:12.5px">' + (digestTime ? esc(digestTime) : 'Off') + '</span></div>' +
+        (digestItems.length ? '<ul class="digest-list">' + digestItems.slice(0,4).map(x => '<li><span class="mono">' + esc(fmtTime(x.due)) + '</span><span>' + esc(x.title) + '</span></li>').join('') + '</ul>' : '<p class="muted">Nothing for tomorrow yet.</p>') +
+        '<p class="muted" style="font-size:13px">One message a day instead of checking ' + NOISE.groups + ' groups. ' + (p.mustOnly ? 'Only Must-do items ping you before that.' : 'Committee steps ping you too.') + '</p></section>' +
+      '<section class="panel mini"><div class="row"><h3>Committee season</h3><button class="link" data-nav="committees" style="font-size:14px">Plan</button></div>' +
+        '<p class="stat">' + state.shortlisted.length + '<small>shortlisted</small></p>' +
+        '<p class="muted" style="font-size:14px">If you get into all of them: <b style="color:var(--ink)">' + lo + '–' + hi + ' hrs a week</b>. Seniors suggest staying under 10 in Term 1.</p></section>' +
+      '<section class="panel mini"><div class="row"><h3>First 30 days</h3><button class="link" data-nav="guide" style="font-size:14px">Guide</button></div>' +
+        '<p class="stat">' + gd + '<small>of ' + GUIDE.length + ' done</small></p><div class="bar" role="img" aria-label="' + gd + ' of ' + GUIDE.length + ' done"><i style="width:' + Math.round(gd/GUIDE.length*100) + '%"></i></div></section>' +
+    '</aside></div></div>';
+}
+
+/* ================= UPDATES ================= */
+function updCard(u){
+  const tagTxt = u.pri === 'must' ? 'Must do' : u.pri === 'pick' ? 'Club' : 'FYI';
+  const cd = u.due ? (has(state.done, u.id) ? {txt:'Done', cls:'done'} : countdown(u.due)) : null;
+  let btn = '';
+  if(u.ref) btn = '<button class="btn sm ghost" data-act="open" data-kind="r" data-id="' + esc(u.ref) + '">' + ico('users') + 'See committee</button>';
+  else if(u.action && u.actionType === 'remind') btn = '<button class="btn sm ghost" data-act="remind" data-id="' + esc(u.id) + '" aria-pressed="' + has(state.reminders, u.id) + '">' + ico('bell') + (has(state.reminders, u.id) ? 'In your digest' : 'Remind me') + '</button>';
+  else if(u.action) btn = '<button class="btn sm" data-act="go" data-id="' + esc(u.id) + '">' + esc(u.action) + ico('arrow') + '</button>';
+  const rawWords = words(u.raw), tlWords = words(u.tldr);
+  return '<article class="upd' + (ui.fresh === u.id ? ' fresh' : '') + '" id="card-' + esc(u.id) + '">' +
+    '<div class="upd-head">' + (u.mine && ui.fresh === u.id ? '<span class="tag new">New</span>' : '') + '<span class="tag ' + u.pri + '">' + tagTxt + '</span><span class="src">' + esc(SRC[u.src].n) + '</span><span class="dotsep">·</span><span>' + esc(fmtAgo(u.posted)) + '</span><span class="dotsep">·</span><span>' + esc(audLabel(u.aud)) + '</span></div>' +
+    '<h3>' + esc(u.title) + '</h3><p class="tldr">' + esc(u.tldr) + '</p>' +
+    '<div class="upd-foot">' + (cd ? '<span class="due ' + cd.cls + '"' + (cd.cls === 'done' ? '' : ' data-due="' + u.due.getTime() + '"') + '>' + ico('clock') + '<span>' + esc(cd.txt) + '</span></span>' : '') + btn + '<span class="spacer"></span>' +
+      (u.raw ? '<button class="link" data-act="raw" data-id="' + esc(u.id) + '" aria-expanded="false" aria-controls="raw-' + esc(u.id) + '" style="font-size:14px">Original message</button>' : '') + '</div>' +
+    (u.raw ? '<div class="raw" id="raw-' + esc(u.id) + '" hidden><div class="bubble"><span class="grp">' + esc(u.grp || SRC[u.src].n) + '</span>' + (u.pri !== 'must' || u.src === 'admin' ? '<span class="fwd">Forwarded</span>' : '') + esc(u.raw) + '<span class="ts">' + esc(fmtTime(u.posted)) + '</span></div><p class="raw-note">Original: ' + rawWords + ' words · Sorted summary: ' + tlWords + ' words</p></div>' : '') +
+  '</article>';
+}
+function filteredUpdates(){
+  const q = ui.q.trim().toLowerCase();
+  const base = allUpdates().filter(audOk);
+  const vis = base.filter(u => !ui.followOnly || srcVisible(u));
+  const byCat = vis.filter(u => ui.cat === 'all' ? true : ui.cat === 'action' ? (u.pri === 'must' && !!u.action) : u.cat === ui.cat);
+  const res = q ? byCat.filter(u => (u.title + ' ' + u.tldr + ' ' + (u.raw||'') + ' ' + SRC[u.src].n).toLowerCase().indexOf(q) !== -1) : byCat;
+  res.sort((a,b) => (b.mine === true) - (a.mine === true) || b.posted - a.posted);
+  return {res, hidden: base.length - vis.length, vis};
+}
+function renderFeed(){
+  const f = filteredUpdates();
+  const el = document.getElementById('feed'); if(!el) return;
+  el.innerHTML = f.res.length ? f.res.map(updCard).join('') : '<div class="panel empty">No updates match. Try another filter or clear the search.</div>';
+  const cl = document.getElementById('count-line');
+  if(cl) cl.textContent = 'Showing ' + f.res.length + ' update' + (f.res.length === 1 ? '' : 's') + (ui.followOnly && f.hidden ? ' · ' + f.hidden + ' hidden from clubs you don’t follow' : '');
+  document.querySelectorAll('[data-act="cat"]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.cat === ui.cat)));
+}
+function viewUpdates(){
+  const vis = allUpdates().filter(audOk).filter(u => !ui.followOnly || srcVisible(u));
+  const n = c => vis.filter(u => c === 'all' ? true : c === 'action' ? (u.pri === 'must' && !!u.action) : u.cat === c).length;
+  const chips = [['all','All'],['action','Needs action'],['academics','Academics'],['admin','Admin'],['committees','Clubs & committees'],['events','Events'],['placements','Placements']];
+  return '<div class="view">' +
+    '<div class="page-head"><p class="eyebrow">Updates</p><h1>Every announcement, one line first</h1><p>Each update starts with what it means for you. The full original message is one tap away.</p></div>' +
+    '<div class="toolbar"><div class="search">' + ico('search') + '<label class="vh" for="q-updates">Search updates</label><input id="q-updates" type="search" placeholder="Search: quiz, form, GD, laundry…" value="' + esc(ui.q) + '" autocomplete="off"></div>' +
+      '<div class="chips" role="group" aria-label="Filter updates">' + chips.map(c => '<button class="chip" data-act="cat" data-cat="' + c[0] + '" aria-pressed="' + (ui.cat === c[0]) + '">' + c[1] + '<span class="n">' + n(c[0]) + '</span></button>').join('') + '</div>' +
+      '<div class="toggle-row"><span id="count-line" class="count-line"></span><label class="switch"><input type="checkbox" id="follow-only" data-act="follow-only"' + (ui.followOnly ? ' checked' : '') + '>Only what I follow</label></div></div>' +
+    '<div class="feed" id="feed"></div></div>';
+}
+
+/* ================= COMMITTEES ================= */
+function nextRound(c){ return c.rounds.find(r => r.due >= NOW); }
+function viewCommittees(){
+  const [lo,hi] = loadRange();
+  const MAX = 30, OK = 10;
+  const items = needItems().filter(x => !has(state.done, x.id));
+  const cl = clashes(items);
+  const list = COMMITTEES.filter(c => ui.cfilter === 'all' ? true : ui.cfilter === 'short' ? has(state.shortlisted, c.id) : has(state.following, c.id));
+  const cards = list.map(c => {
+    const on = has(state.shortlisted, c.id), fol = has(state.following, c.id), nr = nextRound(c);
+    return '<article class="ccard' + (on ? ' on' : '') + '">' +
+      '<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start"><h3>' + esc(c.name) + '</h3>' + (on ? '<span class="tag pick">Shortlisted</span>' : '') + '</div>' +
+      '<p>' + esc(c.what) + '</p>' +
+      '<div class="facts"><span class="fact">' + ico('hours') + c.hrs[0] + '–' + c.hrs[1] + ' hrs/week</span><span class="fact">' + ico('steps') + c.rounds.length + ' rounds</span>' + c.tags.map(t => '<span class="fact">' + esc(t) + '</span>').join('') + '</div>' +
+      '<p class="next">' + (nr ? 'Next: <b>' + esc(nr.t) + '</b> · <span class="mono" style="font-size:12.5px">' + esc(fmtWhen(nr.due, nr.end)) + '</span>' : 'Recruitment rounds are over.') + '</p>' +
+      '<div class="acts"><button class="btn sm' + (on ? '' : ' ghost') + '" data-act="short" data-id="' + c.id + '" aria-pressed="' + on + '">' + ico(on ? 'check' : 'plus') + (on ? 'Shortlisted' : 'Shortlist') + '</button>' +
+        '<button class="btn sm ghost" data-act="follow" data-id="' + c.id + '" aria-pressed="' + fol + '">' + ico('bell') + (fol ? 'Following' : 'Follow') + '</button>' +
+        '<button class="btn sm ghost" data-act="open" data-kind="r" data-id="' + c.id + '">Rounds & tips</button></div>' +
+    '</article>';
+  }).join('');
+  const pct = v => Math.min(100, v / MAX * 100);
+  const clashHtml = cl.length ? '<ul class="clash-list">' + cl.map(p => '<li class="clash">' + ico('alert') + '<div class="body"><p><b>' + esc(fmtDay(p[0].due)) + ', ' + esc(fmtTime(p[0].due)) + ':</b> ' + esc(p[0].title) + ' overlaps ' + esc(p[1].title) + ' (' + esc(fmtTime(p[1].due)) + '–' + esc(fmtTime(p[1].end)) + ').</p><div class="acts"><button class="btn sm" data-act="draft-clash" data-a="' + esc(p[0].id) + '" data-b="' + esc(p[1].id) + '">' + ico('pen') + 'Draft a slot-change request</button></div></div></li>').join('') + '</ul>'
+    : '<p class="muted" style="font-size:14px;display:flex;gap:8px;align-items:center">' + ico('check') + 'No clashes between your shortlisted rounds and your classes or quizzes.</p>';
+  return '<div class="view wide">' +
+    '<div class="page-head"><p class="eyebrow">Committee season · applications open</p><h1>Pick a few that fit, not all of them</h1><p>See what each committee really asks of your week before you apply. Shortlist the ones you want and their rounds go straight into your Today list, with clashes flagged.</p></div>' +
+    '<section class="panel planner" aria-labelledby="h-plan"><div class="load"><h2 id="h-plan">Your plan</h2>' +
+      '<p class="load-text">You shortlisted <b>' + state.shortlisted.length + '</b>. If you get into all of them, that is <b>' + lo + '–' + hi + ' hours a week</b> on top of classes.</p>' +
+      '<div class="load-track" role="img" aria-label="Estimated ' + lo + ' to ' + hi + ' hours a week. Suggested limit 10."><span class="load-ok" style="width:' + pct(OK) + '%"></span>' + (hi ? '<span class="load-range' + (lo > OK ? ' over' : '') + '" style="left:' + pct(lo) + '%;width:' + Math.max(1.5, pct(hi) - pct(lo)) + '%"></span>' : '') + '</div>' +
+      '<div class="load-scale"><span>0</span><span>10 hrs: seniors’ suggested limit</span><span>' + MAX + '</span></div></div>' +
+      '<div class="load"><h2>Clashes</h2>' + clashHtml + '</div></section>' +
+    '<div class="chips" role="group" aria-label="Filter committees">' + [['all','All committees'],['short','Shortlisted'],['follow','Following']].map(c => '<button class="chip" data-act="cfilter" data-f="' + c[0] + '" aria-pressed="' + (ui.cfilter === c[0]) + '">' + c[1] + '</button>').join('') + '</div>' +
+    '<div class="cgrid">' + (cards || '<div class="panel empty">Nothing here yet. Shortlist or follow a committee from "All committees".</div>') + '</div></div>';
+}
+
+/* ================= GUIDE ================= */
+function viewGuide(){
+  const q = ui.gq.trim().toLowerCase();
+  const gd = state.guideDone.length;
+  const cats = GUIDE_CATS.map(cat => {
+    const its = GUIDE.filter(g => g.cat === cat && (!q || (g.title + ' ' + g.why + ' ' + g.steps.join(' ') + ' ' + g.where).toLowerCase().indexOf(q) !== -1));
+    if(!its.length) return '';
+    return '<section class="gcat"><h2>' + esc(cat) + '</h2><div class="panel">' + its.map(g => {
+      const done = has(state.guideDone, g.id);
+      return '<details class="gitem' + (done ? ' is-done' : '') + '"' + (q ? ' open' : '') + '><summary>' +
+        '<label class="chk" data-stop="1"><input type="checkbox" id="g-' + g.id + '" data-act="gdone" data-id="' + g.id + '"' + (done ? ' checked' : '') + '><span>' + ico('check') + '</span><span class="vh">Mark “' + esc(g.title) + '” as done</span></label>' +
+        '<span class="t">' + esc(g.title) + '</span>' + ico('chev','chev') + '</summary>' +
+        '<div class="gbody"><p class="muted">' + esc(g.why) + '</p><ol>' + g.steps.map(s => '<li>' + esc(s) + '</li>').join('') + '</ol>' +
+        '<dl><dt>Where</dt><dd>' + esc(g.where) + '</dd><dt>When</dt><dd>' + esc(g.when) + '</dd>' + (g.bring && g.bring !== '—' ? '<dt>Bring</dt><dd>' + esc(g.bring) + '</dd>' : '') + '</dl>' +
+        (g.link ? '<p><button class="link" data-act="open" data-kind="u" data-id="' + g.link + '">See the related update</button></p>' : '') + '</div></details>';
+    }).join('') + '</div></section>';
+  }).join('');
+  return '<div class="view">' +
+    '<div class="page-head"><p class="eyebrow">Campus guide</p><h1>Your first 30 days, one step at a time</h1><p>The things every fresher asks a senior in week one, written down once and kept up to date by the offices that own them.</p></div>' +
+    '<section class="panel progress"><div class="row"><b>' + gd + ' of ' + GUIDE.length + ' done</b><span class="muted" style="font-size:13.5px">' + (gd === GUIDE.length ? 'All set. Welcome to campus.' : (GUIDE.length - gd) + ' to go') + '</span></div><div class="bar" role="img" aria-label="' + gd + ' of ' + GUIDE.length + ' done"><i style="width:' + Math.round(gd/GUIDE.length*100) + '%"></i></div></section>' +
+    '<div class="search">' + ico('search') + '<label class="vh" for="q-guide">Search the guide</label><input id="q-guide" type="search" placeholder="How do I… (Wi-Fi, laundry, airport)" value="' + esc(ui.gq) + '" autocomplete="off"></div>' +
+    '<div id="guide-list" style="display:flex;flex-direction:column;gap:20px">' + (cats || '<div class="panel empty">No guide entry matches “' + esc(ui.gq) + '”.</div>') + '</div>' +
+    '<p class="muted" style="font-size:13px">Timings and places here are sample entries for the prototype.</p></div>';
+}
+
+/* ================= POST ================= */
+const POST_DEFAULT = () => ({src:'quiz', title:'Sign up for the Freshers’ Quiz', tldr:'Teams of 2, any section. Prelims are in the auditorium. Sign-up takes one minute.', cat:'events', aud:'all', type:'action', pri:'pick', action:'Sign up · 1 min', due:toLocalInput(at(2,'18:00')), raw:''});
+let draft = POST_DEFAULT();
+function postChecks(d){
+  const shouty = /\b[A-Z]{4,}\b/.test(d.title + ' ' + d.tldr);
+  const filler = /(pfa|kindly|ignore if (already )?done|gentle reminder|asap|!!)/i.test(d.title + ' ' + d.tldr);
+  return [
+    {ok: d.title.trim().length >= 8 && d.title.length <= 70, txt:'Title says what to do in under 70 characters'},
+    {ok: d.tldr.trim().length > 0 && d.tldr.length <= 120, txt:'One-line summary fits in 120 characters'},
+    {ok: d.type !== 'action' || (!!d.due && !!d.action.trim()), txt:'Action and deadline are in their own fields'},
+    {ok: !shouty && !filler, txt:'No ALL CAPS, “PFA”, “kindly” or “ignore if done”. Sorted only shows it to people who still need it.'}
+  ];
+}
+function waText(d){
+  const due = d.due ? new Date(d.due) : null;
+  const lines = [];
+  const lab = d.type === 'action' ? (d.pri === 'must' ? '[MUST DO]' : '[OPTIONAL]') : '[FYI]';
+  lines.push('*' + lab + ' ' + (d.title.trim() || 'Your title') + '*');
+  lines.push(d.tldr.trim() || 'Your one-line summary');
+  lines.push('');
+  lines.push('For: ' + audLabel(d.aud));
+  if(d.type === 'action'){ lines.push('Do: ' + (d.action.trim() || '—')); if(due && !isNaN(due)) lines.push('By: ' + WD[due.getDay()] + ' ' + due.getDate() + ' ' + MO[due.getMonth()] + ', ' + fmtTime(due)); }
+  lines.push('From: ' + SRC[d.src].n);
+  lines.push('');
+  lines.push('Full details and reminders in Sorted.');
+  return lines.join('\n');
+}
+function previewItem(d){
+  return {id:'preview', src:d.src, cat:d.cat, pri:d.type === 'action' ? d.pri : 'fyi', aud:d.aud, posted:new Date(), title:d.title.trim() || 'Your title', tldr:d.tldr.trim() || 'Your one-line summary', action:d.type === 'action' ? (d.action.trim() || 'Do it') : null, due:d.type === 'action' && d.due ? new Date(d.due) : null, raw:d.raw.trim() || null};
+}
+function renderPreview(){
+  const box = document.getElementById('post-preview'); if(!box) return;
+  const it = previewItem(draft);
+  const checks = postChecks(draft);
+  box.innerHTML = '<p class="preview-label">How freshers will see it</p>' + updCard(it).replace(/data-act="[^"]*"/g, 'tabindex="-1"') +
+    '<p class="preview-label">Post quality</p><ul class="checks">' + checks.map(c => '<li class="' + (c.ok ? 'ok' : 'no') + '">' + ico(c.ok ? 'check' : 'alert') + '<span>' + esc(c.txt) + '</span></li>').join('') + '</ul>' +
+    '<p class="preview-label">WhatsApp version to forward</p><div class="wa" id="wa-text">' + esc(waText(draft)) + '</div>';
+  const c = document.getElementById('tldr-count');
+  if(c){ c.textContent = draft.tldr.length + ' / 120'; c.classList.toggle('over', draft.tldr.length > 120); }
+  const actWrap = document.getElementById('action-fields'); if(actWrap) actWrap.hidden = draft.type !== 'action';
+}
+function viewPost(){
+  const d = draft;
+  const srcOpts = Object.keys(SRC).map(k => '<option value="' + k + '"' + (d.src === k ? ' selected' : '') + '>' + esc(SRC[k].n) + '</option>').join('');
+  const catOpts = Object.keys(CATS).map(k => '<option value="' + k + '"' + (d.cat === k ? ' selected' : '') + '>' + CATS[k] + '</option>').join('');
+  const auds = [['all','All first-years'],['BM','BM 2026–28'],['HRM','HRM 2026–28']].concat('ABCDEF'.split('').map(s => ['sec:'+s,'Section '+s]));
+  const audOpts = auds.map(a => '<option value="' + a[0] + '"' + (d.aud === a[0] ? ' selected' : '') + '>' + a[1] + '</option>').join('');
+  const seg = (name, val, label) => '<label><input type="radio" name="' + name + '" id="' + name + '-' + val + '" value="' + val + '"' + (d[name] === val ? ' checked' : '') + '><span>' + label + '</span></label>';
+  return '<div class="view wide">' +
+    '<div class="page-head"><p class="eyebrow">For committees, CRs and offices</p><h1>Post once. Reach every fresher who needs it.</h1><p>Fill a short form instead of writing a long message. Sorted shows it only to the right people, reminds those who have not acted, and gives you a clean WhatsApp version to forward.</p></div>' +
+    '<div class="post-grid"><form class="panel form" id="post-form" novalidate>' +
+      '<div class="two"><div class="field"><label for="p-src">Posting as</label><select id="p-src" name="src">' + srcOpts + '</select></div><div class="field"><label for="p-aud">Who is it for</label><select id="p-aud" name="aud">' + audOpts + '</select></div></div>' +
+      '<div class="field"><label for="p-title">Title</label><input type="text" id="p-title" name="title" maxlength="90" value="' + esc(d.title) + '"><span class="hint">Start with a verb: “Submit…”, “Sign up for…”, “Collect…”</span></div>' +
+      '<div class="field"><label for="p-tldr">One-line summary</label><textarea id="p-tldr" name="tldr" rows="2">' + esc(d.tldr) + '</textarea><span class="counter" id="tldr-count"></span></div>' +
+      '<div class="field"><label for="p-cat">Category</label><select id="p-cat" name="cat">' + catOpts + '</select></div>' +
+      '<fieldset class="field"><legend>Does it need people to do something?</legend><div class="seg">' + seg('type','action','Yes, it needs action') + seg('type','info','No, just information') + '</div></fieldset>' +
+      '<div id="action-fields" style="display:flex;flex-direction:column;gap:16px"' + (d.type === 'action' ? '' : ' hidden') + '>' +
+        '<fieldset class="field"><legend>Is it compulsory?</legend><div class="seg">' + seg('pri','must','Must do for everyone') + seg('pri','pick','Optional') + '</div></fieldset>' +
+        '<div class="two"><div class="field"><label for="p-action">Action button</label><input type="text" id="p-action" name="action" maxlength="30" value="' + esc(d.action) + '"><span class="hint">e.g. “Fill form · 3 min”</span></div>' +
+        '<div class="field"><label for="p-due">Deadline</label><input type="datetime-local" id="p-due" name="due" value="' + esc(d.due) + '"></div></div></div>' +
+      '<div class="field"><label for="p-raw">Full details (optional)</label><textarea id="p-raw" name="raw" rows="3" placeholder="Rules, venue, links. Shown under “Original message”.">' + esc(d.raw) + '</textarea></div>' +
+      '<p class="err" id="post-err" hidden></p>' +
+      '<div class="form-acts"><button type="submit" class="btn">' + ico('check') + 'Publish to Sorted</button><button type="button" class="btn ghost" data-act="copy-wa">' + ico('copy') + 'Copy WhatsApp text</button><button type="button" class="btn ghost" data-act="clear-post">Clear</button></div>' +
+    '</form><div class="post-preview preview-stack" id="post-preview" aria-live="polite"></div></div></div>';
+}
+
+/* ================= sheets ================= */
+let lastFocus = null;
+function openSheet(html){
+  lastFocus = document.activeElement;
+  const s = document.getElementById('sheet');
+  s.innerHTML = html;
+  document.getElementById('backdrop').hidden = false;
+  document.body.style.overflow = 'hidden';
+  const f = s.querySelector('[data-autofocus]') || s.querySelector('button, [href], input, select, textarea');
+  if(f) f.focus();
+}
+function closeSheet(){
+  document.getElementById('backdrop').hidden = true;
+  document.body.style.overflow = '';
+  ui.resetArmed = false;
+  if(lastFocus && document.body.contains(lastFocus)) lastFocus.focus();
+}
+function sheetHead(title, sub){ return '<div class="sheet-head"><div>' + (sub || '') + '<h2 id="sheet-title">' + esc(title) + '</h2></div><button class="close" data-act="close" aria-label="Close">' + ico('x') + '</button></div>'; }
+function openUpdate(id){
+  const u = findUpdate(id); if(!u) return;
+  const done = has(state.done, u.id);
+  const tagTxt = u.pri === 'must' ? 'Must do' : u.pri === 'pick' ? 'Club' : 'FYI';
+  let acts = '';
+  if(u.pri === 'must' && u.action && u.due) acts += '<button class="btn" data-act="done-btn" data-id="' + esc(u.id) + '">' + ico('check') + (done ? 'Mark as not done' : 'Mark as done') + '</button>';
+  if(u.action && u.actionType !== 'remind') acts += '<button class="btn ghost" data-act="go" data-id="' + esc(u.id) + '">' + esc(u.action) + ico('arrow') + '</button>';
+  if(u.due) acts += '<button class="btn ghost" data-act="remind" data-id="' + esc(u.id) + '" aria-pressed="' + has(state.reminders, u.id) + '">' + ico('bell') + (has(state.reminders, u.id) ? 'In your digest' : 'Remind me') + '</button>';
+  if(u.ref) acts += '<button class="btn ghost" data-act="open" data-kind="r" data-id="' + esc(u.ref) + '">' + ico('users') + 'See committee</button>';
+  openSheet(sheetHead(u.title, '<div style="display:flex;gap:8px;flex-wrap:wrap"><span class="tag ' + u.pri + '">' + tagTxt + '</span>' + (u.due ? '<span class="due ' + (done ? 'done' : countdown(u.due).cls) + '">' + ico('clock') + (done ? 'Done' : esc(countdown(u.due).txt)) + '</span>' : '') + '</div>') +
+    '<p class="tldr-big">' + esc(u.tldr) + '</p>' +
+    '<dl class="kv"><dt>From</dt><dd>' + esc(SRC[u.src].n) + '</dd><dt>For</dt><dd>' + esc(audLabel(u.aud)) + '</dd>' + (u.due ? '<dt>' + (u.end ? 'When' : 'Due') + '</dt><dd>' + esc(fmtWhen(u.due, u.end)) + '</dd>' : '') + '<dt>Posted</dt><dd>' + esc(fmtAgo(u.posted)) + '</dd></dl>' +
+    (acts ? '<div class="acts">' + acts + '</div>' : '') +
+    (u.raw ? '<div class="raw"><p class="preview-label">Original message</p><div class="bubble"><span class="grp">' + esc(u.grp || SRC[u.src].n) + '</span>' + esc(u.raw) + '<span class="ts">' + esc(fmtTime(u.posted)) + '</span></div><p class="raw-note">Original: ' + words(u.raw) + ' words · Sorted summary: ' + words(u.tldr) + ' words</p></div>' : ''));
+}
+function openCommittee(id){
+  const c = findCommittee(id); if(!c) return;
+  const on = has(state.shortlisted, c.id), fol = has(state.following, c.id);
+  openSheet(sheetHead(c.name, '<div style="display:flex;gap:8px;flex-wrap:wrap"><span class="fact">' + ico('hours') + c.hrs[0] + '–' + c.hrs[1] + ' hrs/week</span>' + (on ? '<span class="tag pick">Shortlisted</span>' : '') + '</div>') +
+    '<p class="tldr-big">' + esc(c.what) + '</p>' +
+    '<div><p class="preview-label" style="margin-bottom:12px">Recruitment rounds</p><ol class="rounds">' + c.rounds.map((r,i) => '<li class="' + (r.due < NOW ? 'past' : '') + '"><span class="node">' + (r.due < NOW ? '' : i+1) + '</span><div><b>' + esc(r.t) + '</b><small class="mono">' + esc(fmtWhen(r.due, r.end)) + (r.due < NOW ? ' · closed' : '') + '</small><small>' + esc(r.note) + '</small></div></li>').join('') + '</ol></div>' +
+    '<div class="quote">“' + esc(c.tip) + '”<cite>A second-year member</cite></div>' +
+    '<div class="acts"><button class="btn' + (on ? '' : '') + '" data-act="short" data-id="' + c.id + '" aria-pressed="' + on + '">' + ico(on ? 'check' : 'plus') + (on ? 'Shortlisted' : 'Shortlist') + '</button><button class="btn ghost" data-act="follow" data-id="' + c.id + '" aria-pressed="' + fol + '">' + ico('bell') + (fol ? 'Following' : 'Follow') + '</button></div>');
+}
+function findNeed(id){ return needItems().find(x => x.id === id); }
+function openClashDraft(aId, bId){
+  const a = findNeed(aId), b = findNeed(bId); if(!a || !b) return;
+  // ask to move the committee round; if both are committee rounds, move the later-starting one
+  let move = b, keep = a;
+  if(a.kind === 'r' && b.kind !== 'r'){ move = a; keep = b; }
+  else if(a.kind === 'r' && b.kind === 'r' && a.due > b.due){ move = a; keep = b; }
+  const p = state.profile;
+  const name = x => x.kind === 'r' ? 'the ' + x.src + ' ' + x.title.slice(x.title.indexOf(': ') + 2).toLowerCase() : x.title;
+  const txt = 'Hi! I’m ' + p.name + ' from Section ' + p.sec + ' (' + p.prog + ' 2026–28). My slot for ' + name(move) + ' (' + fmtDay(move.due) + ', ' + fmtTime(move.due) + ') clashes with ' + name(keep) + ' (' + fmtTime(keep.due) + '–' + fmtTime(keep.end) + '). Could I please move to a later slot? Happy to take any time that works for you. Thank you!';
+  openSheet(sheetHead('Ask for a new slot', '<span class="tag pick">' + esc(move.src) + '</span>') +
+    '<p class="muted">Committees keep backup slots for clashes. Here is a short, polite message you can send to the ' + esc(move.src) + ' coordinators. Edit it if you like.</p>' +
+    '<label class="vh" for="draft-text">Message</label><textarea class="draft" id="draft-text">' + esc(txt) + '</textarea>' +
+    '<div class="acts"><button class="btn" data-act="copy-draft" data-autofocus>' + ico('copy') + 'Copy message</button><button class="btn ghost" data-act="close">Done</button></div>');
+}
+function openProfile(){
+  const p = state.profile;
+  const opts = Object.keys(SRC).filter(k => !SRC[k].off).map(k => '<label><input type="checkbox" id="pf-f-' + k + '" value="' + k + '"' + (has(state.following, k) ? ' checked' : '') + '>' + esc(SRC[k].n) + '</label>').join('');
+  const digest = [['19:00','7:00 pm'],['20:00','8:00 pm'],['21:00','9:00 pm'],['off','Off']].map(o => '<option value="' + o[0] + '"' + (p.digest === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('');
+  openSheet(sheetHead('Make Sorted yours', '<p class="eyebrow">Profile and settings</p>') +
+    '<form id="profile-form" class="preview-stack" novalidate>' +
+      '<div class="two"><div class="field"><label for="pf-name">First name</label><input type="text" id="pf-name" value="' + esc(p.name) + '" maxlength="24" data-autofocus></div>' +
+      '<div class="two"><div class="field"><label for="pf-prog">Programme</label><select id="pf-prog"><option' + (p.prog === 'BM' ? ' selected' : '') + '>BM</option><option' + (p.prog === 'HRM' ? ' selected' : '') + '>HRM</option></select></div>' +
+      '<div class="field"><label for="pf-sec">Section</label><select id="pf-sec">' + 'ABCDEF'.split('').map(s => '<option' + (p.sec === s ? ' selected' : '') + '>' + s + '</option>').join('') + '</select></div></div></div>' +
+      '<div class="two"><div class="field"><label for="pf-digest">Daily digest</label><select id="pf-digest">' + digest + '</select></div>' +
+      '<div class="field"><span style="font-weight:600;font-size:14px">Pings</span><label class="switch" style="min-height:44px"><input type="checkbox" id="pf-must"' + (p.mustOnly ? ' checked' : '') + '>Only Must-do items ping me</label></div></div>' +
+      '<fieldset class="field"><legend>Clubs and committees you follow</legend><div class="follow-grid">' + opts + '</div><span class="hint">Offices, the Placement Committee and your section CR are always on, so you never miss a must-do.</span></fieldset>' +
+      '<div class="form-acts"><button class="btn" type="submit">Save</button><button class="btn ghost" type="button" data-act="reset">' + (ui.resetArmed ? 'Click again to reset everything' : 'Reset demo data') + '</button></div>' +
+    '</form>');
+}
+
+/* ================= router & render ================= */
+const VIEWS = {today:viewToday, updates:viewUpdates, committees:viewCommittees, guide:viewGuide, post:viewPost};
+function render(opts){
+  opts = opts || {};
+  const activeId = document.activeElement && document.activeElement.id;
+  renderShell();
+  document.getElementById('view').innerHTML = VIEWS[ui.route]();
+  if(ui.route === 'updates') renderFeed();
+  if(ui.route === 'post') renderPreview();
+  if(activeId && !opts.nav){ const el = document.getElementById(activeId); if(el && el !== document.body){ try{ el.focus({preventScroll:true}); }catch(e){} } }
+}
+function go(route, focusMain){
+  if(!VIEWS[route]) route = 'today';
+  const changed = route !== ui.route;
+  ui.route = route;
+  if(route !== 'today') ui.day = null;
+  try{ if(location.hash !== '#' + route) history.replaceState(null, '', '#' + route); }catch(e){}
+  render({nav:true});
+  if(changed){ window.scrollTo(0,0); if(focusMain) document.getElementById('view').focus({preventScroll:true}); }
+}
+let toastT = null;
+function toast(msg){ const t = document.getElementById('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, 2600); }
+function copyText(text, el){
+  const fallback = () => { if(el && el.select){ el.focus(); el.select(); } else if(el){ const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s.removeAllRanges(); s.addRange(r); } toast('Text selected. Press Ctrl+C or Cmd+C to copy.'); };
+  try{ navigator.clipboard.writeText(text).then(() => toast('Copied'), fallback); }catch(e){ fallback(); }
+}
+
+/* ================= events ================= */
+document.addEventListener('click', e => {
+  const nav = e.target.closest('[data-nav]');
+  if(nav){ e.preventDefault(); if(!document.getElementById('backdrop').hidden) closeSheet(); go(nav.dataset.nav, true); return; }
+  if(e.target.closest('[data-stop]') && e.target.closest('summary') && !e.target.matches('input')){ return; }
+  const t = e.target.closest('[data-act]');
+  if(!t) { if(e.target.id === 'backdrop') closeSheet(); return; }
+  const act = t.dataset.act, id = t.dataset.id;
+  switch(act){
+    case 'open': if(t.dataset.kind === 'r') openCommittee(id); else openUpdate(id); break;
+    case 'close': closeSheet(); break;
+    case 'day': { const d = Number(t.dataset.day); ui.day = ui.day === d ? null : d; render(); break; }
+    case 'hide-banner': state.banner = false; save(); render(); break;
+    case 'profile': openProfile(); break;
+    case 'cat': ui.cat = t.dataset.cat; renderFeed(); break;
+    case 'raw': { const box = document.getElementById('raw-' + id); if(box){ box.hidden = !box.hidden; t.setAttribute('aria-expanded', String(!box.hidden)); t.textContent = box.hidden ? 'Original message' : 'Hide original'; } break; }
+    case 'remind': { const on = toggleIn(state.reminders, id); save(); toast(on ? 'Added to tonight’s digest' : 'Removed from your digest'); refresh(); break; }
+    case 'go': { const u = findUpdate(id); toast('Prototype: “' + (u ? u.action : 'this') + '” opens the real form or page in the live app.'); break; }
+    case 'done-btn': { const on = toggleIn(state.done, id); save(); toast(on ? 'Marked as done' : 'Marked as not done'); refresh(); break; }
+    case 'short': { const on = toggleIn(state.shortlisted, id); if(on && !has(state.following, id)) state.following.push(id); save(); toast(on ? 'Shortlisted. Its rounds are now in Today.' : 'Removed from your shortlist'); refresh(); break; }
+    case 'follow': { const on = toggleIn(state.following, id); save(); toast(on ? 'Following. Their updates show in your feed.' : 'Unfollowed'); refresh(); break; }
+    case 'cfilter': ui.cfilter = t.dataset.f; render(); break;
+    case 'draft-clash': openClashDraft(t.dataset.a, t.dataset.b); break;
+    case 'copy-draft': { const ta = document.getElementById('draft-text'); copyText(ta.value, ta); break; }
+    case 'copy-wa': copyText(waText(draft), document.getElementById('wa-text')); break;
+    case 'clear-post': draft = {src:draft.src, title:'', tldr:'', cat:draft.cat, aud:'all', type:'action', pri:'must', action:'', due:'', raw:''}; render(); document.getElementById('p-title').focus(); break;
+    case 'reset': if(!ui.resetArmed){ ui.resetArmed = true; t.textContent = 'Click again to reset everything'; } else { state = clone(DEFAULT_STATE); save(); draft = POST_DEFAULT(); ui.resetArmed = false; closeSheet(); toast('Demo data reset'); render(); } break;
+  }
+});
+function refresh(){
+  // re-render page and, if a sheet is open, re-open its content in place
+  const sheetOpen = !document.getElementById('backdrop').hidden;
+  const title = sheetOpen ? document.getElementById('sheet-title').textContent : null;
+  const rawOpen = [...document.querySelectorAll('.raw[id^="raw-"]')].filter(r => !r.hidden).map(r => r.id);
+  render();
+  rawOpen.forEach(id => { const r = document.getElementById(id); const b = document.querySelector('[aria-controls="' + id + '"]'); if(r){ r.hidden = false; if(b){ b.setAttribute('aria-expanded','true'); b.textContent = 'Hide original'; } } });
+  if(sheetOpen){
+    const keepFocus = lastFocus;
+    const c = COMMITTEES.find(x => x.name === title); const u = allUpdates().find(x => x.title === title);
+    if(c) openCommittee(c.id); else if(u) openUpdate(u.id);
+    lastFocus = keepFocus;
+  }
+}
+document.addEventListener('change', e => {
+  const t = e.target;
+  if(t.dataset.act === 'done'){ const on = toggleIn(state.done, t.dataset.id); save(); if(on) toast('Done. One less thing.'); render(); return; }
+  if(t.dataset.act === 'gdone'){ toggleIn(state.guideDone, t.dataset.id); save(); render(); return; }
+  if(t.dataset.act === 'follow-only'){ ui.followOnly = t.checked; renderFeed(); return; }
+  if(t.closest('#post-form')) syncDraft();
+});
+document.addEventListener('input', e => {
+  const t = e.target;
+  if(t.id === 'q-updates'){ ui.q = t.value; renderFeed(); return; }
+  if(t.id === 'q-guide'){ ui.gq = t.value; const pos = t.selectionStart; render(); const q = document.getElementById('q-guide'); q.focus(); try{ q.setSelectionRange(pos,pos); }catch(err){} return; }
+  if(t.closest('#post-form')) syncDraft();
+});
+function syncDraft(){
+  const f = document.getElementById('post-form'); if(!f) return;
+  const v = n => { const el = f.elements[n]; return el ? el.value : ''; };
+  draft = {src:v('src'), title:v('title'), tldr:v('tldr'), cat:v('cat'), aud:v('aud'), type:(f.querySelector('input[name=type]:checked')||{}).value || 'action', pri:(f.querySelector('input[name=pri]:checked')||{}).value || 'must', action:v('action'), due:v('due'), raw:v('raw')};
+  renderPreview();
+}
+document.addEventListener('submit', e => {
+  if(e.target.id === 'post-form'){
+    e.preventDefault(); syncDraft();
+    const err = document.getElementById('post-err');
+    const probs = [];
+    if(draft.title.trim().length < 8) probs.push('add a title of at least 8 characters');
+    if(!draft.tldr.trim()) probs.push('add a one-line summary');
+    if(draft.tldr.length > 120) probs.push('shorten the summary to 120 characters');
+    if(draft.type === 'action' && !draft.due) probs.push('set a deadline');
+    if(draft.type === 'action' && !draft.action.trim()) probs.push('name the action button');
+    if(probs.length){ err.textContent = 'To publish, ' + probs.join(', ') + '.'; err.hidden = false; return; }
+    err.hidden = true;
+    const it = previewItem(draft);
+    const id = 'p' + Date.now();
+    state.posts.unshift({id, src:it.src, cat:it.cat, pri:it.pri, aud:it.aud, posted:new Date().toISOString(), title:it.title, tldr:it.tldr, action:it.action, due:it.due ? it.due.toISOString() : null, raw:it.raw, grp:SRC[it.src].n});
+    if(!SRC[it.src].off && !has(state.following, it.src)) state.following.push(it.src);
+    save();
+    draft = POST_DEFAULT();
+    ui.fresh = id; ui.cat = 'all'; ui.q = '';
+    go('updates', true);
+    toast('Published. It is at the top of Updates.');
+    const card = document.getElementById('card-' + id); if(card) card.scrollIntoView({block:'center'});
+  }
+  if(e.target.id === 'profile-form'){
+    e.preventDefault();
+    const name = document.getElementById('pf-name').value.trim() || 'Fresher';
+    state.profile = {name, prog:document.getElementById('pf-prog').value, sec:document.getElementById('pf-sec').value, digest:document.getElementById('pf-digest').value, mustOnly:document.getElementById('pf-must').checked};
+    const fol = [...document.querySelectorAll('.follow-grid input')].filter(i => i.checked).map(i => i.value);
+    state.following = fol;
+    state.banner = false;
+    save(); closeSheet(); toast('Saved. Sorted now shows what applies to you.'); render();
+  }
+});
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape' && !document.getElementById('backdrop').hidden){ closeSheet(); }
+  if(e.key === 'Tab' && !document.getElementById('backdrop').hidden){
+    const f = [...document.getElementById('sheet').querySelectorAll('button, [href], input, select, textarea')].filter(x => !x.disabled && x.offsetParent !== null);
+    if(!f.length) return;
+    const first = f[0], last = f[f.length-1];
+    if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+    else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+  }
+});
+document.getElementById('backdrop').addEventListener('click', e => { if(e.target.id === 'backdrop') closeSheet(); });
+window.addEventListener('scroll', () => { document.getElementById('topbar').classList.toggle('scrolled', window.scrollY > 4); }, {passive:true});
+window.addEventListener('hashchange', () => { const h = location.hash.slice(1); if(VIEWS[h] && h !== ui.route) go(h); });
+setInterval(() => {
+  document.querySelectorAll('[data-due]').forEach(el => { const cd = countdown(new Date(Number(el.dataset.due))); el.className = 'due ' + cd.cls; const s = el.querySelector('span'); if(s) s.textContent = cd.txt; });
+}, 30000);
+
+/* boot */
+const start = location.hash.slice(1);
+ui.route = VIEWS[start] ? start : 'today';
+render({nav:true});
+})();
+</script>
+
+<div class="install" id="install" hidden role="region" aria-label="Install Sorted">
+  <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0F1930"/><rect x="5" y="7.5" width="21" height="4.4" rx="2.2" fill="#FF6A5C"/><rect x="5" y="14.1" width="14.9" height="4.4" rx="2.2" fill="#86A2FF"/><rect x="5" y="20.7" width="8.8" height="4.4" rx="2.2" fill="#FFE14A"/></svg>
+  <p id="install-text">Add Sorted to your home screen for one-tap access, even offline.</p>
+  <button class="btn sm" id="install-go">Install</button>
+  <button class="install-x" id="install-x" aria-label="Dismiss">&times;</button>
+</div>
+<style>
+.install{position:fixed;left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));bottom:calc(86px + env(safe-area-inset-bottom,0px));z-index:15;display:flex;align-items:center;gap:12px;padding:10px 8px 10px 12px;border-radius:14px;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow);font-size:14px;color:var(--ink)}
+.install svg{width:34px;height:34px;flex:none}
+.install p{flex:1;min-width:0;line-height:1.35}
+.install-x{width:34px;height:34px;border-radius:9px;font-size:22px;line-height:1;color:var(--ink-3)}
+.install-x:hover{background:var(--surface-2)}
+@media (min-width:900px){.install{left:auto;right:24px;bottom:24px;max-width:400px}}
+</style>
+<script>
+(function(){
+  if ('serviceWorker' in navigator) window.addEventListener('load', function(){ navigator.serviceWorker.register('./sw.js').catch(function(){}); });
+  var standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  if (standalone) return;
+  var dismissed = false; try { dismissed = localStorage.getItem('sorted.installDismissed') === '1'; } catch (e) {}
+  if (dismissed) return;
+  var box = document.getElementById('install'), go = document.getElementById('install-go'), txt = document.getElementById('install-text');
+  var deferred = null;
+  window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); deferred = e; box.hidden = false; });
+  var ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (ios) { txt.innerHTML = 'To install: tap <b>Share</b>, then <b>Add to Home Screen</b>.'; go.hidden = true; box.hidden = false; }
+  go.addEventListener('click', function(){ if (!deferred) return; deferred.prompt(); deferred.userChoice.then(function(){ deferred = null; box.hidden = true; }); });
+  document.getElementById('install-x').addEventListener('click', function(){ box.hidden = true; try { localStorage.setItem('sorted.installDismissed', '1'); } catch (e) {} });
+  window.addEventListener('appinstalled', function(){ box.hidden = true; });
+})();
+</script>
+</body>
+</html>
