@@ -3,7 +3,7 @@
   "name": "Sorted",
   "short_name": "Sorted",
   "description": "One short list of what needs you this week: deadlines, committee rounds and campus how-tos for first-year students.",
-  "start_url": "./#today",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",

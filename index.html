@@ -96,8 +96,14 @@ svg.i{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-widt
 .brand .proto{font:500 10.5px/1 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);border:1px solid var(--line);border-radius:999px;padding:4px 7px;margin-left:2px}
 .me{display:flex;align-items:center;gap:10px;border-radius:999px;padding:3px}
 .avatar{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--hl);color:#0F1930;font:700 14px/1 var(--f-display)}
-.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:6;display:grid;grid-template-columns:repeat(5,1fr);background:var(--surface);border-top:1px solid var(--line);padding:6px max(16px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
-.tab{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;border-radius:12px;color:var(--ink-3);font:600 11.5px/1.1 var(--f-body)}
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:6;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));background:var(--surface);border-top:1px solid var(--line);padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
+.tab{position:relative;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 1px;border-radius:12px;color:var(--ink-3);font:600 11px/1.1 var(--f-body)}
+.tab .lbl{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (max-width:400px){.tab{font-size:10.5px;letter-spacing:-.01em}}
+@media (max-width:380px){
+  .tabbar{padding-left:max(4px,env(safe-area-inset-left,0px));padding-right:max(4px,env(safe-area-inset-right,0px))}
+  .tab{font-size:10px;letter-spacing:-.02em;padding-inline:0}
+}
 .tab[aria-current="page"]{color:var(--ink)}
 .tab[aria-current="page"] svg{stroke-width:2.3}
 .tab .badge{position:absolute;top:2px;left:calc(50% + 6px)}
@@ -407,6 +413,24 @@ fieldset{border:0;margin:0;padding:0;min-width:0}
 .follow-grid label{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:10px;border:1px solid var(--line);font-size:14px;cursor:pointer}
 .follow-grid input{accent-color:var(--pick);width:16px;height:16px}
 
+/* settings */
+.set-group{display:flex;flex-direction:column}
+.set-group > h2{font:700 17px/1.2 var(--f-display);letter-spacing:-.01em;padding:16px 18px 4px}
+.set-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 18px;border-top:1px solid var(--line)}
+.set-group > h2 + .set-row{border-top:0}
+.set-row .lab{display:flex;flex-direction:column;gap:2px;min-width:0;cursor:default}
+.set-row .lab b{font-weight:600;font-size:15px}
+.set-row .lab small{color:var(--ink-2);font-size:13px;line-height:1.4}
+.set-row select,.set-row input[type=text]{min-height:40px;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);font-size:14.5px}
+.set-row select{min-width:136px;flex:none}
+.set-row .seg{margin-top:0;flex:none}
+.set-row.stack{flex-direction:column;align-items:stretch;gap:10px}
+.set-row.stack input[type=text]{width:100%}
+.set-row .follow-grid{margin-top:0}
+.set-row .btn{flex:none}
+@media (max-width:520px){.set-row.wrap{flex-direction:column;align-items:stretch;gap:10px}}
+.about{font-size:13px;color:var(--ink-3);text-align:center}
+
 .toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:30;max-width:calc(100% - 32px);padding:11px 16px;border-radius:12px;background:var(--ink);color:var(--bg);font-weight:600;font-size:14px;box-shadow:var(--shadow)}
 @media (min-width:900px){.toast{bottom:28px}}
 @media (prefers-reduced-motion:no-preference){.toast{animation:rise .2s ease-out}@keyframes rise{from{transform:translate(-50%,8px);opacity:0}}}
@@ -488,7 +512,8 @@ const ICONS = {
   hours:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12h4"/>',
   steps:'<path d="M4 7h6M4 12h10M4 17h16"/>',
   star:'<path d="M12 4l2.4 5 5.4.6-4 3.7 1.1 5.3L12 16l-4.9 2.6 1.1-5.3-4-3.7 5.4-.6z"/>',
-  plus:'<path d="M12 5v14M5 12h14"/>'
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>'
 };
 function ico(n, cls){ return '<svg class="i' + (cls ? ' ' + cls : '') + '" viewBox="0 0 24 24" aria-hidden="true">' + ICONS[n] + '</svg>'; }
 
@@ -649,15 +674,29 @@ const ARRIVAL_DAY = 12;
 
 /* ================= state ================= */
 const KEY = 'sorted.v1';
+const PROGS = ['BM','HRM','GM'];
+const BATCH = {BM:'2026–28', HRM:'2026–28', GM:'2026–27'};
+const progLabel = p => p + ' ' + (BATCH[p] || '');
 const DEFAULT_STATE = {
-  profile:{name:'Riya', prog:'BM', sec:'B', digest:'20:00', mustOnly:true},
+  profile:{name:'Nilkanth', prog:'GM', sec:'B', digest:'20:00', mustOnly:true},
+  prefs:{theme:'system', start:'today', showFyi:true, hoursLimit:10},
   following:['fin','cons','mkt','ana','cult','sports','mess','lib','quiz'],
   shortlisted:['cons','mkt','ana'],
   done:[], guideDone:['g2','g3','g4'], reminders:[], posts:[], banner:true
 };
 function clone(o){ return JSON.parse(JSON.stringify(o)); }
 function load(){
-  try{ const raw = localStorage.getItem(KEY); if(raw){ const s = JSON.parse(raw); return Object.assign(clone(DEFAULT_STATE), s, {profile:Object.assign({}, DEFAULT_STATE.profile, s.profile||{})}); } }catch(e){}
+  try{
+    const raw = localStorage.getItem(KEY);
+    if(raw){
+      const s = JSON.parse(raw);
+      const profile = Object.assign({}, DEFAULT_STATE.profile, s.profile||{});
+      // the first release shipped with a sample profile; swap it for the new default
+      if(profile.name === 'Riya' && profile.prog === 'BM' && profile.sec === 'B') Object.assign(profile, {name:DEFAULT_STATE.profile.name, prog:DEFAULT_STATE.profile.prog, sec:DEFAULT_STATE.profile.sec});
+      if(PROGS.indexOf(profile.prog) === -1) profile.prog = DEFAULT_STATE.profile.prog;
+      return Object.assign(clone(DEFAULT_STATE), s, {profile, prefs:Object.assign({}, DEFAULT_STATE.prefs, s.prefs||{})});
+    }
+  }catch(e){}
   return clone(DEFAULT_STATE);
 }
 let state = load();
@@ -671,8 +710,8 @@ const ui = {route:'today', day:null, q:'', cat:'all', followOnly:true, cfilter:'
 /* ================= derived data ================= */
 function postToItem(p){ return Object.assign({}, p, {posted:new Date(p.posted), due:p.due ? new Date(p.due) : null, end:null, mine:true}); }
 function allUpdates(){ return state.posts.map(postToItem).concat(UPDATES); }
-function audOk(u){ if(!u.aud || u.aud === 'all' || u.aud === 'mysec') return true; if(u.aud === 'BM' || u.aud === 'HRM') return u.aud === state.profile.prog; if(u.aud.indexOf('sec:') === 0) return u.aud.slice(4) === state.profile.sec; return true; }
-function audLabel(a){ if(!a || a === 'all') return 'All first-years'; if(a === 'mysec') return 'Section ' + state.profile.sec; if(a === 'BM' || a === 'HRM') return a + ' 2026–28'; if(a.indexOf('sec:') === 0) return 'Section ' + a.slice(4); return a; }
+function audOk(u){ if(!u.aud || u.aud === 'all' || u.aud === 'mysec') return true; if(PROGS.indexOf(u.aud) !== -1) return u.aud === state.profile.prog; if(u.aud.indexOf('sec:') === 0) return u.aud.slice(4) === state.profile.sec; return true; }
+function audLabel(a){ if(!a || a === 'all') return 'All first-years'; if(a === 'mysec') return 'Section ' + state.profile.sec; if(PROGS.indexOf(a) !== -1) return progLabel(a); if(a.indexOf('sec:') === 0) return 'Section ' + a.slice(4); return a; }
 function srcVisible(u){ return u.mine || SRC[u.src].off || has(state.following, u.src); }
 function findUpdate(id){ return allUpdates().find(u => u.id === id); }
 function findCommittee(id){ return COMMITTEES.find(c => c.id === id); }
@@ -705,16 +744,17 @@ const NAV = [
   {id:'updates', label:'Updates', icon:'inbox'},
   {id:'committees', label:'Committees', icon:'users'},
   {id:'guide', label:'Guide', icon:'compass'},
-  {id:'post', label:'Post', icon:'pen'}
+  {id:'post', label:'Post', icon:'pen'},
+  {id:'settings', label:'Settings', icon:'gear'}
 ];
 function renderShell(){
   const hot = needItems().filter(x => !has(state.done, x.id) && x.due - Date.now() < DAY).length;
   const badge = id => id === 'today' && hot ? '<span class="badge" aria-label="' + hot + ' due within 24 hours">' + hot + '</span>' : '';
   document.getElementById('rail-nav').innerHTML = NAV.map(n => '<button data-nav="' + n.id + '"' + (ui.route === n.id ? ' aria-current="page"' : '') + '>' + ico(n.icon) + n.label + badge(n.id) + '</button>').join('');
-  document.getElementById('tabbar').innerHTML = NAV.map(n => '<button class="tab" data-nav="' + n.id + '"' + (ui.route === n.id ? ' aria-current="page"' : '') + '>' + ico(n.icon) + n.label + badge(n.id) + '</button>').join('');
+  document.getElementById('tabbar').innerHTML = NAV.map(n => '<button class="tab" data-nav="' + n.id + '"' + (ui.route === n.id ? ' aria-current="page"' : '') + '>' + ico(n.icon) + '<span class="lbl">' + n.label + '</span>' + badge(n.id) + '</button>').join('');
   const p = state.profile, ini = esc((p.name || '?').trim().charAt(0).toUpperCase() || '?');
   document.getElementById('top-me').innerHTML = '<span class="avatar">' + ini + '</span>';
-  document.getElementById('rail-me').innerHTML = '<span class="avatar">' + ini + '</span><span><b>' + esc(p.name) + '</b><small>' + esc(p.prog) + ' 2026–28 · Section ' + esc(p.sec) + '</small></span>';
+  document.getElementById('rail-me').innerHTML = '<span class="avatar">' + ini + '</span><span><b>' + esc(p.name) + '</b><small>' + esc(progLabel(p.prog)) + ' · Section ' + esc(p.sec) + '</small></span>';
 }
 
 /* ================= TODAY ================= */
@@ -790,7 +830,7 @@ function viewToday(){
 
   const p = state.profile;
   return '<div class="view wide">' +
-    (state.banner ? '<div class="banner">' + ico('star') + '<p>You are seeing a sample profile: ' + esc(p.name) + ', ' + esc(p.prog) + ' · Section ' + esc(p.sec) + '. <button class="link" data-act="profile">Make it yours</button></p><button class="x" data-act="hide-banner" aria-label="Dismiss">' + ico('x') + '</button></div>' : '') +
+    (state.banner ? '<div class="banner">' + ico('star') + '<p>Signed in as ' + esc(p.name) + ', ' + esc(progLabel(p.prog)) + ' · Section ' + esc(p.sec) + '. <button class="link" data-nav="settings">Change in Settings</button></p><button class="x" data-act="hide-banner" aria-label="Dismiss">' + ico('x') + '</button></div>' : '') +
     '<div class="page-head"><p class="eyebrow">Day ' + ARRIVAL_DAY + ' on campus · ' + esc(WDL[NOW.getDay()]) + ' ' + NOW.getDate() + ' ' + MO[NOW.getMonth()] + '</p></div>' +
     '<section class="hero" aria-label="Summary">' +
       '<div><p class="eyebrow">' + esc(greet()) + ', ' + esc(p.name) + '</p>' +
@@ -805,14 +845,14 @@ function viewToday(){
       '<section class="panel" aria-labelledby="h-due"><div class="section-title" style="padding:16px 16px 0"><h2 id="h-due">Due next</h2><span class="muted" style="font-size:13.5px">' + open.length + ' open · ' + (items.length - open.length) + ' done</span></div>' +
         '<ul class="tasks">' + list + '</ul>' +
         '<div class="list-foot"><span>' + (later ? later + ' more after this week' : 'That is everything for the week.') + '</span><span>Tick things off as you go.</span></div></section>' +
-      '<section class="panel" aria-labelledby="h-fyi"><div class="section-title" style="padding:16px 16px 4px"><h2 id="h-fyi">Good to know</h2><button class="link" data-nav="updates">All updates</button></div><ul class="tasks">' + fyiHtml + '</ul></section>' +
+      (state.prefs.showFyi ? '<section class="panel" aria-labelledby="h-fyi"><div class="section-title" style="padding:16px 16px 4px"><h2 id="h-fyi">Good to know</h2><button class="link" data-nav="updates">All updates</button></div><ul class="tasks">' + fyiHtml + '</ul></section>' : '') +
     '</div><aside class="today-side" aria-label="Shortcuts">' +
       '<section class="panel mini"><div class="row"><h3>Tonight’s digest</h3><span class="mono muted" style="font-size:12.5px">' + (digestTime ? esc(digestTime) : 'Off') + '</span></div>' +
         (digestItems.length ? '<ul class="digest-list">' + digestItems.slice(0,4).map(x => '<li><span class="mono">' + esc(fmtTime(x.due)) + '</span><span>' + esc(x.title) + '</span></li>').join('') + '</ul>' : '<p class="muted">Nothing for tomorrow yet.</p>') +
         '<p class="muted" style="font-size:13px">One message a day instead of checking ' + NOISE.groups + ' groups. ' + (p.mustOnly ? 'Only Must-do items ping you before that.' : 'Committee steps ping you too.') + '</p></section>' +
       '<section class="panel mini"><div class="row"><h3>Committee season</h3><button class="link" data-nav="committees" style="font-size:14px">Plan</button></div>' +
         '<p class="stat">' + state.shortlisted.length + '<small>shortlisted</small></p>' +
-        '<p class="muted" style="font-size:14px">If you get into all of them: <b style="color:var(--ink)">' + lo + '–' + hi + ' hrs a week</b>. Seniors suggest staying under 10 in Term 1.</p></section>' +
+        '<p class="muted" style="font-size:14px">If you get into all of them: <b style="color:var(--ink)">' + lo + '–' + hi + ' hrs a week</b>. Your limit is ' + state.prefs.hoursLimit + ' hrs a week.</p></section>' +
       '<section class="panel mini"><div class="row"><h3>First 30 days</h3><button class="link" data-nav="guide" style="font-size:14px">Guide</button></div>' +
         '<p class="stat">' + gd + '<small>of ' + GUIDE.length + ' done</small></p><div class="bar" role="img" aria-label="' + gd + ' of ' + GUIDE.length + ' done"><i style="width:' + Math.round(gd/GUIDE.length*100) + '%"></i></div></section>' +
     '</aside></div></div>';
@@ -868,7 +908,7 @@ function viewUpdates(){
 function nextRound(c){ return c.rounds.find(r => r.due >= NOW); }
 function viewCommittees(){
   const [lo,hi] = loadRange();
-  const MAX = 30, OK = 10;
+  const MAX = 30, OK = state.prefs.hoursLimit;
   const items = needItems().filter(x => !has(state.done, x.id));
   const cl = clashes(items);
   const list = COMMITTEES.filter(c => ui.cfilter === 'all' ? true : ui.cfilter === 'short' ? has(state.shortlisted, c.id) : has(state.following, c.id));
@@ -891,8 +931,8 @@ function viewCommittees(){
     '<div class="page-head"><p class="eyebrow">Committee season · applications open</p><h1>Pick a few that fit, not all of them</h1><p>See what each committee really asks of your week before you apply. Shortlist the ones you want and their rounds go straight into your Today list, with clashes flagged.</p></div>' +
     '<section class="panel planner" aria-labelledby="h-plan"><div class="load"><h2 id="h-plan">Your plan</h2>' +
       '<p class="load-text">You shortlisted <b>' + state.shortlisted.length + '</b>. If you get into all of them, that is <b>' + lo + '–' + hi + ' hours a week</b> on top of classes.</p>' +
-      '<div class="load-track" role="img" aria-label="Estimated ' + lo + ' to ' + hi + ' hours a week. Suggested limit 10."><span class="load-ok" style="width:' + pct(OK) + '%"></span>' + (hi ? '<span class="load-range' + (lo > OK ? ' over' : '') + '" style="left:' + pct(lo) + '%;width:' + Math.max(1.5, pct(hi) - pct(lo)) + '%"></span>' : '') + '</div>' +
-      '<div class="load-scale"><span>0</span><span>10 hrs: seniors’ suggested limit</span><span>' + MAX + '</span></div></div>' +
+      '<div class="load-track" role="img" aria-label="Estimated ' + lo + ' to ' + hi + ' hours a week. Your limit is ' + OK + '."><span class="load-ok" style="width:' + pct(OK) + '%"></span>' + (hi ? '<span class="load-range' + (lo > OK ? ' over' : '') + '" style="left:' + pct(lo) + '%;width:' + Math.max(1.5, pct(hi) - pct(lo)) + '%"></span>' : '') + '</div>' +
+      '<div class="load-scale"><span>0</span><span>' + OK + ' hrs: your weekly limit</span><span>' + MAX + '</span></div></div>' +
       '<div class="load"><h2>Clashes</h2>' + clashHtml + '</div></section>' +
     '<div class="chips" role="group" aria-label="Filter committees">' + [['all','All committees'],['short','Shortlisted'],['follow','Following']].map(c => '<button class="chip" data-act="cfilter" data-f="' + c[0] + '" aria-pressed="' + (ui.cfilter === c[0]) + '">' + c[1] + '</button>').join('') + '</div>' +
     '<div class="cgrid">' + (cards || '<div class="panel empty">Nothing here yet. Shortlist or follow a committee from "All committees".</div>') + '</div></div>';
@@ -968,7 +1008,7 @@ function viewPost(){
   const d = draft;
   const srcOpts = Object.keys(SRC).map(k => '<option value="' + k + '"' + (d.src === k ? ' selected' : '') + '>' + esc(SRC[k].n) + '</option>').join('');
   const catOpts = Object.keys(CATS).map(k => '<option value="' + k + '"' + (d.cat === k ? ' selected' : '') + '>' + CATS[k] + '</option>').join('');
-  const auds = [['all','All first-years'],['BM','BM 2026–28'],['HRM','HRM 2026–28']].concat('ABCDEF'.split('').map(s => ['sec:'+s,'Section '+s]));
+  const auds = [['all','All first-years']].concat(PROGS.map(k => [k, progLabel(k)])).concat('ABCDEF'.split('').map(s => ['sec:'+s,'Section '+s]));
   const audOpts = auds.map(a => '<option value="' + a[0] + '"' + (d.aud === a[0] ? ' selected' : '') + '>' + a[1] + '</option>').join('');
   const seg = (name, val, label) => '<label><input type="radio" name="' + name + '" id="' + name + '-' + val + '" value="' + val + '"' + (d[name] === val ? ' checked' : '') + '><span>' + label + '</span></label>';
   return '<div class="view wide">' +
@@ -1040,30 +1080,79 @@ function openClashDraft(aId, bId){
   else if(a.kind === 'r' && b.kind === 'r' && a.due > b.due){ move = a; keep = b; }
   const p = state.profile;
   const name = x => x.kind === 'r' ? 'the ' + x.src + ' ' + x.title.slice(x.title.indexOf(': ') + 2).toLowerCase() : x.title;
-  const txt = 'Hi! I’m ' + p.name + ' from Section ' + p.sec + ' (' + p.prog + ' 2026–28). My slot for ' + name(move) + ' (' + fmtDay(move.due) + ', ' + fmtTime(move.due) + ') clashes with ' + name(keep) + ' (' + fmtTime(keep.due) + '–' + fmtTime(keep.end) + '). Could I please move to a later slot? Happy to take any time that works for you. Thank you!';
+  const txt = 'Hi! I’m ' + p.name + ' from Section ' + p.sec + ' (' + progLabel(p.prog) + '). My slot for ' + name(move) + ' (' + fmtDay(move.due) + ', ' + fmtTime(move.due) + ') clashes with ' + name(keep) + ' (' + fmtTime(keep.due) + '–' + fmtTime(keep.end) + '). Could I please move to a later slot? Happy to take any time that works for you. Thank you!';
   openSheet(sheetHead('Ask for a new slot', '<span class="tag pick">' + esc(move.src) + '</span>') +
     '<p class="muted">Committees keep backup slots for clashes. Here is a short, polite message you can send to the ' + esc(move.src) + ' coordinators. Edit it if you like.</p>' +
     '<label class="vh" for="draft-text">Message</label><textarea class="draft" id="draft-text">' + esc(txt) + '</textarea>' +
     '<div class="acts"><button class="btn" data-act="copy-draft" data-autofocus>' + ico('copy') + 'Copy message</button><button class="btn ghost" data-act="close">Done</button></div>');
 }
-function openProfile(){
-  const p = state.profile;
-  const opts = Object.keys(SRC).filter(k => !SRC[k].off).map(k => '<label><input type="checkbox" id="pf-f-' + k + '" value="' + k + '"' + (has(state.following, k) ? ' checked' : '') + '>' + esc(SRC[k].n) + '</label>').join('');
-  const digest = [['19:00','7:00 pm'],['20:00','8:00 pm'],['21:00','9:00 pm'],['off','Off']].map(o => '<option value="' + o[0] + '"' + (p.digest === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('');
-  openSheet(sheetHead('Make Sorted yours', '<p class="eyebrow">Profile and settings</p>') +
-    '<form id="profile-form" class="preview-stack" novalidate>' +
-      '<div class="two"><div class="field"><label for="pf-name">First name</label><input type="text" id="pf-name" value="' + esc(p.name) + '" maxlength="24" data-autofocus></div>' +
-      '<div class="two"><div class="field"><label for="pf-prog">Programme</label><select id="pf-prog"><option' + (p.prog === 'BM' ? ' selected' : '') + '>BM</option><option' + (p.prog === 'HRM' ? ' selected' : '') + '>HRM</option></select></div>' +
-      '<div class="field"><label for="pf-sec">Section</label><select id="pf-sec">' + 'ABCDEF'.split('').map(s => '<option' + (p.sec === s ? ' selected' : '') + '>' + s + '</option>').join('') + '</select></div></div></div>' +
-      '<div class="two"><div class="field"><label for="pf-digest">Daily digest</label><select id="pf-digest">' + digest + '</select></div>' +
-      '<div class="field"><span style="font-weight:600;font-size:14px">Pings</span><label class="switch" style="min-height:44px"><input type="checkbox" id="pf-must"' + (p.mustOnly ? ' checked' : '') + '>Only Must-do items ping me</label></div></div>' +
-      '<fieldset class="field"><legend>Clubs and committees you follow</legend><div class="follow-grid">' + opts + '</div><span class="hint">Offices, the Placement Committee and your section CR are always on, so you never miss a must-do.</span></fieldset>' +
-      '<div class="form-acts"><button class="btn" type="submit">Save</button><button class="btn ghost" type="button" data-act="reset">' + (ui.resetArmed ? 'Click again to reset everything' : 'Reset demo data') + '</button></div>' +
-    '</form>');
+/* ================= SETTINGS ================= */
+function applyTheme(){
+  const t = state.prefs.theme, root = document.documentElement;
+  if(t === 'light' || t === 'dark'){ root.setAttribute('data-theme', t); root.dataset.sortedTheme = t; }
+  else if(root.dataset.sortedTheme){ root.removeAttribute('data-theme'); delete root.dataset.sortedTheme; }
+  // keep the phone's status bar in step with the chosen theme (installed app)
+  document.querySelectorAll('meta[name="theme-color"]').forEach(m => {
+    if(!m.dataset.orig) m.dataset.orig = m.content;
+    m.content = t === 'dark' ? '#0B111E' : t === 'light' ? '#F1F3F7' : m.dataset.orig;
+  });
+}
+function viewSettings(){
+  const p = state.profile, pr = state.prefs;
+  const seg = (name, val, opts, label) => '<div class="seg" role="radiogroup" aria-label="' + label + '">' + opts.map(o => '<label><input type="radio" name="' + name + '" id="' + name + '-' + o[0] + '" value="' + o[0] + '"' + (String(val) === String(o[0]) ? ' checked' : '') + '><span>' + o[1] + '</span></label>').join('') + '</div>';
+  const sel = (id, val, opts) => '<select id="' + id + '">' + opts.map(o => '<option value="' + o[0] + '"' + (String(val) === String(o[0]) ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select>';
+  const sw = (id, on) => '<span class="switch"><input type="checkbox" id="' + id + '"' + (on ? ' checked' : '') + '></span>';
+  const lab = (forId, title, sub) => '<label class="lab" for="' + forId + '"><b>' + title + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</label>';
+  const labTxt = (title, sub) => '<div class="lab"><b>' + title + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</div>';
+  const follow = Object.keys(SRC).filter(k => !SRC[k].off).map(k => '<label><input type="checkbox" id="st-f-' + k + '" value="' + k + '"' + (has(state.following, k) ? ' checked' : '') + '>' + esc(SRC[k].n) + '</label>').join('');
+  return '<div class="view">' +
+    '<div class="page-head"><p class="eyebrow">Settings</p><h1>Make Sorted yours</h1><p>Changes save as you make them and stay on this device.</p></div>' +
+    '<form id="settings-form" novalidate style="display:flex;flex-direction:column;gap:18px">' +
+    '<section class="panel set-group" aria-labelledby="h-st-profile"><h2 id="h-st-profile">Profile</h2>' +
+      '<div class="set-row stack">' + lab('st-name', 'Name', 'Shown in your greeting and in messages Sorted drafts for you.') + '<input type="text" id="st-name" value="' + esc(p.name) + '" maxlength="24" autocomplete="given-name"></div>' +
+      '<div class="set-row wrap">' + labTxt('Programme', esc(progLabel(p.prog)) + ' · updates for other programmes are hidden') + seg('st-prog', p.prog, PROGS.map(k => [k, k]), 'Programme') + '</div>' +
+      '<div class="set-row">' + lab('st-sec', 'Section', 'Class rep posts and section deadlines follow this.') + sel('st-sec', p.sec, 'ABCDEF'.split('').map(s => [s, 'Section ' + s])) + '</div>' +
+    '</section>' +
+    '<section class="panel set-group" aria-labelledby="h-st-look"><h2 id="h-st-look">Appearance</h2>' +
+      '<div class="set-row wrap">' + labTxt('Theme', 'System matches your phone’s light or dark mode.') + seg('st-theme', pr.theme, [['system','System'],['light','Light'],['dark','Dark']], 'Theme') + '</div>' +
+      '<div class="set-row">' + lab('st-start', 'Open the app on', 'The screen you see first.') + sel('st-start', pr.start, [['today','Today'],['updates','Updates'],['committees','Committees'],['guide','Guide']]) + '</div>' +
+      '<div class="set-row">' + lab('st-fyi', 'Show “Good to know” on Today', 'Events and FYI notices under your deadlines.') + sw('st-fyi', pr.showFyi) + '</div>' +
+    '</section>' +
+    '<section class="panel set-group" aria-labelledby="h-st-notify"><h2 id="h-st-notify">Digest and reminders</h2>' +
+      '<div class="set-row">' + lab('st-digest', 'Daily digest', 'One summary instead of checking every group.') + sel('st-digest', p.digest, [['19:00','7:00 pm'],['20:00','8:00 pm'],['21:00','9:00 pm'],['off','Off']]) + '</div>' +
+      '<div class="set-row">' + lab('st-must', 'Only Must-do items ping me', 'Committee steps wait for the digest.') + sw('st-must', p.mustOnly) + '</div>' +
+    '</section>' +
+    '<section class="panel set-group" aria-labelledby="h-st-comm"><h2 id="h-st-comm">Committees</h2>' +
+      '<div class="set-row">' + lab('st-hours', 'Weekly hours limit', 'The plan meter warns you above this.') + sel('st-hours', pr.hoursLimit, [6,8,10,12,15].map(h => [h, h + ' hrs a week'])) + '</div>' +
+    '</section>' +
+    '<section class="panel set-group" aria-labelledby="h-st-follow"><h2 id="h-st-follow">Clubs and committees you follow</h2>' +
+      '<div class="set-row stack"><div class="follow-grid">' + follow + '</div><small class="muted" style="font-size:13px">Offices, the Placement Committee and your section CR are always on, so you never miss a must-do.</small></div>' +
+    '</section>' +
+    '<section class="panel set-group" aria-labelledby="h-st-data"><h2 id="h-st-data">Your data</h2>' +
+      '<div class="set-row wrap">' + labTxt('Reset the app', 'Ticks, shortlists, posts and settings are saved only on this device.') + '<button class="btn ghost sm" type="button" data-act="reset">' + (ui.resetArmed ? 'Click again to reset everything' : 'Reset demo data') + '</button></div>' +
+    '</section>' +
+    '</form>' +
+    '<p class="about">Sorted · student prototype for a design thinking course · sample data</p></div>';
+}
+function saveSetting(t){
+  const id = t.id, p = state.profile, pr = state.prefs;
+  let msg = 'Saved';
+  if(t.name === 'st-prog'){ p.prog = t.value; msg = 'Programme set to ' + progLabel(p.prog); }
+  else if(id === 'st-sec'){ p.sec = t.value; msg = 'Section set to ' + p.sec; }
+  else if(t.name === 'st-theme'){ pr.theme = t.value; applyTheme(); msg = t.value === 'system' ? 'Theme follows your device' : t.value === 'dark' ? 'Dark theme on' : 'Light theme on'; }
+  else if(id === 'st-start'){ pr.start = t.value; msg = 'Sorted will open on ' + t.options[t.selectedIndex].text; }
+  else if(id === 'st-fyi'){ pr.showFyi = t.checked; }
+  else if(id === 'st-digest'){ p.digest = t.value; msg = t.value === 'off' ? 'Daily digest off' : 'Digest at ' + t.options[t.selectedIndex].text; }
+  else if(id === 'st-must'){ p.mustOnly = t.checked; }
+  else if(id === 'st-hours'){ pr.hoursLimit = Number(t.value); msg = 'Limit set to ' + t.value + ' hrs a week'; }
+  else if(id.indexOf('st-f-') === 0){ const on = t.checked; if(on && !has(state.following, t.value)) state.following.push(t.value); if(!on) state.following = state.following.filter(k => k !== t.value); msg = (on ? 'Following ' : 'Unfollowed ') + SRC[t.value].n; }
+  else if(id === 'st-name'){ p.name = t.value.trim() || 'Fresher'; msg = 'Name saved'; }
+  else return;
+  save(); toast(msg); render();
 }
 
 /* ================= router & render ================= */
-const VIEWS = {today:viewToday, updates:viewUpdates, committees:viewCommittees, guide:viewGuide, post:viewPost};
+const VIEWS = {today:viewToday, updates:viewUpdates, committees:viewCommittees, guide:viewGuide, post:viewPost, settings:viewSettings};
 function render(opts){
   opts = opts || {};
   const activeId = document.activeElement && document.activeElement.id;
@@ -1102,7 +1191,7 @@ document.addEventListener('click', e => {
     case 'close': closeSheet(); break;
     case 'day': { const d = Number(t.dataset.day); ui.day = ui.day === d ? null : d; render(); break; }
     case 'hide-banner': state.banner = false; save(); render(); break;
-    case 'profile': openProfile(); break;
+    case 'profile': go('settings', true); break;
     case 'cat': ui.cat = t.dataset.cat; renderFeed(); break;
     case 'raw': { const box = document.getElementById('raw-' + id); if(box){ box.hidden = !box.hidden; t.setAttribute('aria-expanded', String(!box.hidden)); t.textContent = box.hidden ? 'Original message' : 'Hide original'; } break; }
     case 'remind': { const on = toggleIn(state.reminders, id); save(); toast(on ? 'Added to tonight’s digest' : 'Removed from your digest'); refresh(); break; }
@@ -1115,7 +1204,7 @@ document.addEventListener('click', e => {
     case 'copy-draft': { const ta = document.getElementById('draft-text'); copyText(ta.value, ta); break; }
     case 'copy-wa': copyText(waText(draft), document.getElementById('wa-text')); break;
     case 'clear-post': draft = {src:draft.src, title:'', tldr:'', cat:draft.cat, aud:'all', type:'action', pri:'must', action:'', due:'', raw:''}; render(); document.getElementById('p-title').focus(); break;
-    case 'reset': if(!ui.resetArmed){ ui.resetArmed = true; t.textContent = 'Click again to reset everything'; } else { state = clone(DEFAULT_STATE); save(); draft = POST_DEFAULT(); ui.resetArmed = false; closeSheet(); toast('Demo data reset'); render(); } break;
+    case 'reset': if(!ui.resetArmed){ ui.resetArmed = true; t.textContent = 'Click again to reset everything'; } else { state = clone(DEFAULT_STATE); save(); draft = POST_DEFAULT(); ui.resetArmed = false; applyTheme(); toast('Demo data reset'); render(); } break;
   }
 });
 function refresh(){
@@ -1134,6 +1223,7 @@ function refresh(){
 }
 document.addEventListener('change', e => {
   const t = e.target;
+  if(t.closest('#settings-form')){ saveSetting(t); return; }
   if(t.dataset.act === 'done'){ const on = toggleIn(state.done, t.dataset.id); save(); if(on) toast('Done. One less thing.'); render(); return; }
   if(t.dataset.act === 'gdone'){ toggleIn(state.guideDone, t.dataset.id); save(); render(); return; }
   if(t.dataset.act === 'follow-only'){ ui.followOnly = t.checked; renderFeed(); return; }
@@ -1142,6 +1232,7 @@ document.addEventListener('change', e => {
 document.addEventListener('input', e => {
   const t = e.target;
   if(t.id === 'q-updates'){ ui.q = t.value; renderFeed(); return; }
+  if(t.id === 'st-name'){ state.profile.name = t.value.trim() || 'Fresher'; save(); renderShell(); return; }
   if(t.id === 'q-guide'){ ui.gq = t.value; const pos = t.selectionStart; render(); const q = document.getElementById('q-guide'); q.focus(); try{ q.setSelectionRange(pos,pos); }catch(err){} return; }
   if(t.closest('#post-form')) syncDraft();
 });
@@ -1174,15 +1265,7 @@ document.addEventListener('submit', e => {
     toast('Published. It is at the top of Updates.');
     const card = document.getElementById('card-' + id); if(card) card.scrollIntoView({block:'center'});
   }
-  if(e.target.id === 'profile-form'){
-    e.preventDefault();
-    const name = document.getElementById('pf-name').value.trim() || 'Fresher';
-    state.profile = {name, prog:document.getElementById('pf-prog').value, sec:document.getElementById('pf-sec').value, digest:document.getElementById('pf-digest').value, mustOnly:document.getElementById('pf-must').checked};
-    const fol = [...document.querySelectorAll('.follow-grid input')].filter(i => i.checked).map(i => i.value);
-    state.following = fol;
-    state.banner = false;
-    save(); closeSheet(); toast('Saved. Sorted now shows what applies to you.'); render();
-  }
+  if(e.target.id === 'settings-form') e.preventDefault();
 });
 document.addEventListener('keydown', e => {
   if(e.key === 'Escape' && !document.getElementById('backdrop').hidden){ closeSheet(); }
@@ -1203,7 +1286,8 @@ setInterval(() => {
 
 /* boot */
 const start = location.hash.slice(1);
-ui.route = VIEWS[start] ? start : 'today';
+applyTheme();
+ui.route = VIEWS[start] ? start : (VIEWS[state.prefs.start] ? state.prefs.start : 'today');
 render({nav:true});
 })();
 </script>

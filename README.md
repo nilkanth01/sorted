@@ -23,6 +23,7 @@ Once installed it opens full screen like a normal app and works offline.
 | Committees | Hours per week for each committee, a plan meter, clash detection, a drafted slot-change message |
 | Guide | A first-30-days checklist: ID card, Wi-Fi, LMS, laundry, getting home |
 | Post | A one-minute form for committees and offices, with quality checks and a WhatsApp-ready version |
+| Settings | Name, programme (BM, HRM, GM), section, theme (system, light, dark), start screen, digest time, weekly committee hours limit, clubs you follow |
 
 Your ticks, shortlists and posts are saved only on your own device (browser storage). Nothing is sent to a server.
 
